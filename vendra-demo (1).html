@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vendra — پورتال فروش</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --bg: #0a0e1a;
+  --surface: #111827;
+  --surface2: #1a2235;
+  --surface3: #212d42;
+  --border: rgba(255,255,255,0.07);
+  --border2: rgba(255,255,255,0.12);
+  --accent: #4f8ef7;
+  --accent2: #7c6af7;
+  --accent3: #2dd4a0;
+  --accent4: #f59e3a;
+  --danger: #f05a6a;
+  --text: #e8edf5;
+  --text2: #8a93a8;
+  --text3: #4a5568;
+  --radius: 16px;
+  --radius-sm: 10px;
+  --radius-xs: 6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;direction:rtl;overflow-x:hidden;}
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
+
+/* ===== PAGES ===== */
+.page{display:none;min-height:100vh;}
+.page.active{display:flex;}
+
+/* ===== LOGIN PAGE ===== */
+#page-login{align-items:center;justify-content:center;background:var(--bg);position:relative;overflow:hidden;}
+.login-bg{position:absolute;inset:0;pointer-events:none;}
+.login-bg .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:0.15;}
+.login-bg .orb1{width:400px;height:400px;background:var(--accent);top:-100px;right:-100px;}
+.login-bg .orb2{width:300px;height:300px;background:var(--accent2);bottom:-50px;left:-50px;}
+.login-card{background:var(--surface);border:1px solid var(--border2);border-radius:24px;padding:40px;width:100%;max-width:420px;position:relative;z-index:1;}
+.login-logo{text-align:center;margin-bottom:32px;}
+.login-logo .brand{font-size:28px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.login-logo p{font-size:12px;color:var(--text2);margin-top:4px;}
+.login-tabs{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:4px;gap:4px;margin-bottom:24px;}
+.login-tab{flex:1;padding:8px;border:none;border-radius:8px;background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s;}
+.login-tab.active{background:var(--surface2);color:var(--text);}
+.field{margin-bottom:16px;}
+.field label{font-size:11px;color:var(--text2);margin-bottom:6px;display:block;font-weight:500;}
+.field input,.field select{width:100%;background:var(--surface2);border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:11px 14px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:13px;outline:none;transition:border-color .2s;text-align:right;}
+.field input:focus,.field select:focus{border-color:var(--accent);}
+.field input::placeholder{color:var(--text3);}
+.field select option{background:var(--surface2);}
+.btn-primary{width:100%;background:linear-gradient(135deg,var(--accent),var(--accent2));border:none;border-radius:var(--radius-sm);padding:13px;color:#fff;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s;margin-top:8px;}
+.btn-primary:hover{opacity:0.9;}
+.login-hint{font-size:11px;color:var(--text3);text-align:center;margin-top:16px;}
+.login-hint span{color:var(--accent);cursor:pointer;}
+
+/* ===== PENDING PAGE ===== */
+#page-pending{align-items:center;justify-content:center;flex-direction:column;gap:16px;}
+.pending-icon{width:80px;height:80px;background:var(--surface2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;}
+.pending-title{font-size:20px;font-weight:700;}
+.pending-sub{font-size:13px;color:var(--text2);text-align:center;max-width:300px;line-height:1.6;}
+.btn-ghost{background:transparent;border:1.5px solid var(--border2);border-radius:var(--radius-sm);padding:10px 20px;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:12px;cursor:pointer;transition:all .2s;}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+
+/* ===== MAIN LAYOUT ===== */
+#page-app{flex-direction:row;}
+.sidebar{width:240px;min-height:100vh;background:var(--surface);border-left:1px solid var(--border);display:flex;flex-direction:column;padding:20px 16px;position:sticky;top:0;}
+.sidebar-logo{font-size:20px;font-weight:800;letter-spacing:-0.5px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px;}
+.sidebar-role{font-size:10px;color:var(--text3);margin-bottom:28px;}
+.nav-section{font-size:9px;font-weight:700;color:var(--text3);letter-spacing:.1em;margin-bottom:8px;margin-top:16px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:var(--radius-xs);cursor:pointer;transition:all .15s;margin-bottom:2px;font-size:12px;font-weight:500;color:var(--text2);}
+.nav-item:hover{background:var(--surface2);color:var(--text);}
+.nav-item.active{background:rgba(79,142,247,0.12);color:var(--accent);}
+.nav-icon{font-size:16px;width:20px;text-align:center;}
+.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid var(--border);}
+.user-info{display:flex;align-items:center;gap:10px;}
+.user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name{font-size:12px;font-weight:600;}
+.user-type{font-size:10px;color:var(--text3);}
+.btn-logout{background:none;border:none;color:var(--text3);font-size:11px;cursor:pointer;margin-top:8px;font-family:'Vazirmatn',sans-serif;}
+.btn-logout:hover{color:var(--danger);}
+
+.main-content{flex:1;overflow-y:auto;padding:28px;}
+
+/* ===== SCREENS ===== */
+.screen{display:none;}
+.screen.active{display:block;}
+
+/* ===== DASHBOARD ===== */
+.page-title{font-size:20px;font-weight:700;margin-bottom:4px;}
+.page-sub{font-size:12px;color:var(--text2);margin-bottom:24px;}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:24px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;}
+.stat-label{font-size:10px;color:var(--text2);margin-bottom:8px;font-weight:500;}
+.stat-value{font-size:22px;font-weight:800;}
+.stat-sub{font-size:10px;color:var(--text3);margin-top:4px;}
+.stat-blue{color:var(--accent);}
+.stat-green{color:var(--accent3);}
+.stat-orange{color:var(--accent4);}
+.stat-red{color:var(--danger);}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:16px;}
+.card-title{font-size:13px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;}
+.badge{display:inline-block;font-size:9px;font-weight:700;padding:2px 8px;border-radius:20px;}
+.badge-blue{background:rgba(79,142,247,0.15);color:var(--accent);}
+.badge-green{background:rgba(45,212,160,0.15);color:var(--accent3);}
+.badge-orange{background:rgba(245,158,58,0.15);color:var(--accent4);}
+.badge-red{background:rgba(240,90,106,0.15);color:var(--danger);}
+.badge-gray{background:var(--surface3);color:var(--text2);}
+
+/* orders table */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+th{font-size:10px;color:var(--text3);font-weight:600;padding:8px 12px;text-align:right;border-bottom:1px solid var(--border);}
+td{font-size:12px;padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:rgba(255,255,255,0.02);}
+
+/* ===== CATALOG ===== */
+.catalog-filters{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;}
+.filter-btn{background:var(--surface2);border:1.5px solid var(--border);border-radius:20px;padding:6px 14px;font-family:'Vazirmatn',sans-serif;font-size:11px;color:var(--text2);cursor:pointer;transition:all .15s;}
+.filter-btn.active{border-color:var(--accent);color:var(--accent);background:rgba(79,142,247,0.1);}
+.product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;}
+.product-card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:all .2s;}
+.product-card:hover{border-color:var(--accent);transform:translateY(-2px);}
+.product-card.selected{border-color:var(--accent3);background:rgba(45,212,160,0.04);}
+.product-img{width:100%;height:140px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:40px;position:relative;}
+.product-img .sku-badge{position:absolute;top:8px;right:8px;background:var(--bg);border-radius:4px;padding:2px 6px;font-size:9px;color:var(--text3);font-weight:600;}
+.product-info{padding:12px;}
+.product-name{font-size:12px;font-weight:700;margin-bottom:4px;}
+.product-prices{display:flex;flex-direction:column;gap:3px;}
+.price-row{display:flex;justify-content:space-between;font-size:10px;}
+.price-label{color:var(--text3);}
+.price-val{font-weight:700;color:var(--accent3);}
+.qty-control{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.qty-btn{width:26px;height:26px;border-radius:6px;border:1.5px solid var(--border2);background:var(--surface2);color:var(--text);font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.qty-btn:hover{border-color:var(--accent);color:var(--accent);}
+.qty-num{font-size:13px;font-weight:700;min-width:24px;text-align:center;}
+.min-note{font-size:9px;color:var(--text3);margin-top:4px;}
+
+/* ===== ORDER SUMMARY ===== */
+.order-sidebar{width:320px;background:var(--surface);border-right:1px solid var(--border);padding:20px;position:sticky;top:0;max-height:100vh;overflow-y:auto;flex-shrink:0;}
+.order-sidebar h3{font-size:13px;font-weight:700;margin-bottom:16px;}
+.order-item{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.order-item:last-child{border-bottom:none;}
+.order-item-name{color:var(--text);}
+.order-item-qty{color:var(--text2);}
+.order-item-price{font-weight:700;color:var(--accent3);}
+.order-total{margin-top:12px;padding-top:12px;border-top:1px solid var(--border2);}
+.order-total-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;}
+.order-total-row.final{font-size:14px;font-weight:700;color:var(--accent);}
+
+/* payment type */
+.pay-toggle{display:flex;background:var(--bg);border-radius:var(--radius-sm);padding:3px;gap:3px;margin:12px 0;}
+.pay-btn{flex:1;padding:7px;border:none;border-radius:8px;background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;}
+.pay-btn.active{background:var(--surface2);color:var(--text);}
+.check-days{margin:8px 0;}
+.check-days label{font-size:10px;color:var(--text2);display:flex;justify-content:space-between;margin-bottom:4px;}
+input[type=range]{width:100%;accent-color:var(--accent);}
+.vat-row{display:flex;justify-content:space-between;align-items:center;padding:8px;background:var(--surface2);border-radius:var(--radius-xs);margin:8px 0;}
+.vat-label{font-size:11px;color:var(--text2);}
+.switch{position:relative;display:inline-block;width:34px;height:18px;}
+.switch input{opacity:0;width:0;height:0;}
+.sw-slider{position:absolute;cursor:pointer;inset:0;background:var(--surface3);border-radius:18px;transition:.2s;}
+.sw-slider:before{position:absolute;content:'';height:12px;width:12px;right:3px;bottom:3px;background:var(--text2);border-radius:50%;transition:.2s;}
+input:checked+.sw-slider{background:var(--accent3);}
+input:checked+.sw-slider:before{transform:translateX(-16px);background:#fff;}
+
+.invoice-type{display:flex;gap:8px;margin:8px 0;}
+.inv-btn{flex:1;padding:7px;border:1.5px solid var(--border);border-radius:var(--radius-xs);background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:10px;cursor:pointer;transition:all .15s;}
+.inv-btn.active{border-color:var(--accent4);color:var(--accent4);background:rgba(245,158,58,0.08);}
+.btn-order{width:100%;background:linear-gradient(135deg,var(--accent3),#1aa87a);border:none;border-radius:var(--radius-sm);padding:12px;color:#fff;font-family:'Vazirmatn',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-top:12px;transition:opacity .2s;}
+.btn-order:hover{opacity:0.9;}
+.btn-order:disabled{opacity:0.4;cursor:not-allowed;}
+
+/* ===== INVOICE ===== */
+.invoice-paper{background:#fff;color:#1a1a2e;border-radius:var(--radius);padding:32px;max-width:680px;margin:0 auto;font-family:'Vazirmatn',sans-serif;}
+.inv-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #e8ecf4;}
+.inv-brand{font-size:22px;font-weight:800;background:linear-gradient(135deg,#4f8ef7,#7c6af7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.inv-meta{text-align:left;font-size:11px;color:#666;}
+.inv-meta strong{display:block;font-size:13px;color:#1a1a2e;margin-bottom:4px;}
+.inv-parties{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.inv-party{background:#f7f9fc;border-radius:8px;padding:12px;}
+.inv-party-title{font-size:9px;font-weight:700;color:#999;letter-spacing:.08em;margin-bottom:6px;}
+.inv-party-name{font-size:13px;font-weight:700;color:#1a1a2e;}
+.inv-party-detail{font-size:10px;color:#666;margin-top:2px;}
+.inv-table{width:100%;border-collapse:collapse;margin-bottom:16px;}
+.inv-table th{background:#f0f4ff;font-size:10px;color:#666;padding:8px 10px;text-align:right;font-weight:600;}
+.inv-table td{font-size:11px;padding:9px 10px;border-bottom:1px solid #eee;color:#1a1a2e;}
+.inv-totals{margin-right:auto;width:220px;}
+.inv-total-row{display:flex;justify-content:space-between;font-size:11px;padding:4px 0;color:#444;}
+.inv-total-row.final{font-size:14px;font-weight:800;color:#1a1a2e;border-top:2px solid #e8ecf4;padding-top:8px;margin-top:4px;}
+.inv-footer{text-align:center;font-size:10px;color:#aaa;margin-top:20px;padding-top:16px;border-top:1px solid #eee;}
+.inv-stamp{display:inline-block;border:2px solid #4f8ef7;border-radius:8px;padding:4px 12px;color:#4f8ef7;font-size:11px;font-weight:700;margin-top:8px;}
+.btn-print{background:var(--accent);border:none;border-radius:var(--radius-sm);padding:10px 20px;color:#fff;font-family:'Vazirmatn',sans-serif;font-size:12px;font-weight:700;cursor:pointer;margin-left:8px;}
+.btn-back{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--radius-sm);padding:10px 20px;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:12px;font-weight:600;cursor:pointer;}
+
+/* ===== ADMIN PANEL ===== */
+.admin-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px;}
+.admin-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:16px;}
+.admin-card-title{font-size:11px;font-weight:700;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px;}
+.user-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:11px;}
+.user-row:last-child{border-bottom:none;}
+.user-row-info{display:flex;align-items:center;gap:8px;}
+.mini-avatar{width:28px;height:28px;border-radius:50%;background:var(--surface3);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;}
+.btn-approve{background:rgba(45,212,160,0.15);border:none;border-radius:4px;padding:3px 10px;color:var(--accent3);font-family:'Vazirmatn',sans-serif;font-size:10px;cursor:pointer;font-weight:600;}
+.btn-approve:hover{background:rgba(45,212,160,0.25);}
+.btn-reject{background:rgba(240,90,106,0.15);border:none;border-radius:4px;padding:3px 10px;color:var(--danger);font-family:'Vazirmatn',sans-serif;font-size:10px;cursor:pointer;font-weight:600;margin-right:4px;}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{color:var(--text2);}
+.setting-input{background:var(--surface2);border:1.5px solid var(--border2);border-radius:6px;padding:5px 10px;color:var(--text);font-family:'Vazirmatn',sans-serif;font-size:12px;width:100px;text-align:center;outline:none;}
+.setting-input:focus{border-color:var(--accent);}
+
+/* ===== MOBILE ===== */
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);padding:8px 0;z-index:100;}
+.mobile-nav-items{display:flex;justify-content:space-around;}
+.mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:4px 16px;cursor:pointer;font-size:9px;color:var(--text3);transition:color .15s;}
+.mobile-nav-item.active{color:var(--accent);}
+.mobile-nav-icon{font-size:20px;}
+.hamburger{display:none;background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;padding:4px;}
+
+@media(max-width:768px){
+  .sidebar{display:none;position:fixed;right:0;top:0;bottom:0;z-index:200;transform:translateX(100%);transition:transform .3s;}
+  .sidebar.open{display:flex;transform:translateX(0);}
+  .mobile-nav{display:block;}
+  .hamburger{display:block;}
+  .main-content{padding:16px;padding-bottom:80px;}
+  .product-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));}
+  .admin-grid{grid-template-columns:1fr;}
+  .order-sidebar{display:none;}
+  #page-app{flex-direction:column;}
+  .stat-grid{grid-template-columns:1fr 1fr;}
+  .inv-parties{grid-template-columns:1fr;}
+}
+.top-bar{display:none;background:var(--surface);border-bottom:1px solid var(--border);padding:12px 16px;align-items:center;justify-content:space-between;}
+@media(max-width:768px){.top-bar{display:flex;}}
+.top-bar-title{font-size:14px;font-weight:700;}
+.floating-order{display:none;}
+@media(max-width:768px){
+  .floating-order{display:block;position:fixed;bottom:70px;left:16px;right:16px;z-index:99;}
+  .floating-order-btn{width:100%;background:linear-gradient(135deg,var(--accent3),#1aa87a);border:none;border-radius:var(--radius-sm);padding:14px;color:#fff;font-family:'Vazirmatn',sans-serif;font-size:14px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="page-login" class="page active">
+  <div class="login-bg">
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="brand">Vendra</div>
+      <p>پلتفرم هوشمند فروش و سفارش</p>
+    </div>
+    <div class="login-tabs">
+      <button class="login-tab active" onclick="switchLoginTab('login')">ورود</button>
+      <button class="login-tab" onclick="switchLoginTab('register')">ثبت‌نام</button>
+    </div>
+    <div id="login-form">
+      <div class="field">
+        <label>نام کاربری</label>
+        <input type="text" id="login-user" placeholder="مثلاً: admin یا rep1 یا shop1">
+      </div>
+      <div class="field">
+        <label>رمز عبور</label>
+        <input type="password" id="login-pass" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">ورود به پورتال</button>
+      <p class="login-hint">دمو: <span onclick="quickLogin('admin')">ادمین</span> | <span onclick="quickLogin('rep1')">نماینده</span> | <span onclick="quickLogin('shop1')">مغازه‌دار</span></p>
+    </div>
+    <div id="register-form" style="display:none">
+      <div class="field">
+        <label>نام و نام خانوادگی</label>
+        <input type="text" id="reg-name" placeholder="نام کامل">
+      </div>
+      <div class="field">
+        <label>شماره موبایل</label>
+        <input type="text" id="reg-phone" placeholder="09xxxxxxxxx">
+      </div>
+      <div class="field">
+        <label>نوع کاربر</label>
+        <select id="reg-type">
+          <option value="rep">نماینده</option>
+          <option value="shop">مغازه‌دار</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>استان</label>
+        <select id="reg-province">
+          <option>تهران</option><option>اصفهان</option><option>مشهد</option>
+          <option>شیراز</option><option>تبریز</option><option>اهواز</option><option>سایر</option>
+        </select>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">ارسال درخواست</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PENDING PAGE ===== -->
+<div id="page-pending" class="page">
+  <div class="pending-icon">⏳</div>
+  <div class="pending-title">در انتظار تایید</div>
+  <p class="pending-sub">درخواست ثبت‌نام شما دریافت شد و در انتظار تایید ادمین است. پس از تایید می‌توانید وارد شوید.</p>
+  <button class="btn-ghost" onclick="showPage('page-login')">بازگشت به ورود</button>
+</div>
+
+<!-- ===== MAIN APP ===== -->
+<div id="page-app" class="page">
+
+  <!-- موبایل تاپ‌بار -->
+  <div class="top-bar">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div class="top-bar-title" id="top-bar-title">داشبورد</div>
+    <div style="font-size:20px;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:800;">V</div>
+  </div>
+
+  <!-- سایدبار -->
+  <div class="sidebar" id="sidebar">
+    <div>
+      <div class="sidebar-logo">Vendra</div>
+      <div class="sidebar-role" id="sidebar-role">نماینده فروش</div>
+      <div class="nav-section">منو اصلی</div>
+      <div class="nav-item active" id="nav-dashboard" onclick="showScreen('dashboard')">
+        <span class="nav-icon">📊</span> داشبورد
+      </div>
+      <div class="nav-item" id="nav-catalog" onclick="showScreen('catalog')">
+        <span class="nav-icon">🛍️</span> ثبت سفارش
+      </div>
+      <div class="nav-item" id="nav-orders" onclick="showScreen('orders')">
+        <span class="nav-icon">📋</span> سفارش‌های من
+      </div>
+      <div class="nav-item" id="nav-admin" onclick="showScreen('admin')" style="display:none">
+        <span class="nav-icon">⚙️</span> پنل ادمین
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <div class="user-avatar" id="user-avatar">ن</div>
+        <div>
+          <div class="user-name" id="user-name-display">نماینده</div>
+          <div class="user-type" id="user-type-display">نماینده فروش</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">خروج از حساب</button>
+    </div>
+  </div>
+
+  <!-- محتوای اصلی -->
+  <div class="main-content" id="main-content">
+
+    <!-- داشبورد -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="page-title" id="dash-welcome">سلام، نماینده!</div>
+      <div class="page-sub">خلاصه وضعیت حساب شما</div>
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-label">مانده حساب</div>
+          <div class="stat-value stat-red" id="dash-balance">۱۲٫۵ میلیون</div>
+          <div class="stat-sub">بدهکار</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">سقف اعتبار</div>
+          <div class="stat-value stat-blue" id="dash-credit">۵۰ میلیون</div>
+          <div class="stat-sub">تومان</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">چک برگشتی</div>
+          <div class="stat-value stat-orange" id="dash-bounced">۰</div>
+          <div class="stat-sub">فقره</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">آخرین سفارش</div>
+          <div class="stat-value stat-green">۳ روز پیش</div>
+          <div class="stat-sub">تایید شده</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📦 آخرین سفارش‌ها</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>شماره</th><th>تاریخ</th><th>مبلغ</th><th>نوع</th><th>وضعیت</th></tr></thead>
+            <tbody>
+              <tr><td>#۱۰۲۳</td><td>۱۴۰۳/۰۳/۱۵</td><td>۳۲٫۵ میلیون</td><td><span class="badge badge-blue">نقدی</span></td><td><span class="badge badge-green">تایید شده</span></td></tr>
+              <tr><td>#۱۰۱۸</td><td>۱۴۰۳/۰۲/۲۸</td><td>۴۸ میلیون</td><td><span class="badge badge-orange">۳۰ روزه</span></td><td><span class="badge badge-green">تایید شده</span></td></tr>
+              <tr><td>#۱۰۱۱</td><td>۱۴۰۳/۰۲/۱۰</td><td>۲۱ میلیون</td><td><span class="badge badge-blue">نقدی</span></td><td><span class="badge badge-gray">بایگانی</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- کاتالوگ + ثبت سفارش -->
+    <div class="screen" id="screen-catalog" style="display:flex;gap:16px;align-items:flex-start;">
+      <div style="flex:1">
+        <div class="page-title">ثبت سفارش جدید</div>
+        <div class="page-sub">محصولات را انتخاب و تعداد را مشخص کنید</div>
+        <div class="catalog-filters" id="catalog-filters"></div>
+        <div class="product-grid" id="product-grid"></div>
+      </div>
+      <div class="order-sidebar" id="order-sidebar-desktop">
+        <h3>🛒 سبد سفارش</h3>
+        <div id="order-items-list"><p style="font-size:11px;color:var(--text3);text-align:center;padding:20px 0">هنوز محصولی انتخاب نشده</p></div>
+        <div class="order-total" id="order-total-section" style="display:none">
+          <div class="pay-toggle">
+            <button class="pay-btn active" onclick="setPayType('cash')">نقدی</button>
+            <button class="pay-btn" onclick="setPayType('check')">چکی</button>
+          </div>
+          <div class="check-days" id="check-days-ctrl" style="display:none">
+            <label><span>مدت چک</span><span id="check-days-val" style="color:var(--accent);font-weight:700">۳۰ روز</span></label>
+            <input type="range" min="1" max="365" value="30" oninput="updateCheckDays(this.value)">
+          </div>
+          <div class="invoice-type">
+            <button class="inv-btn active" onclick="setInvType('formal','این')">رسمی (+ ۱۰٪ ارزش افزوده)</button>
+            <button class="inv-btn" onclick="setInvType('informal','این')">غیررسمی</button>
+          </div>
+          <div class="order-total-row"><span>جمع کالا</span><span id="total-goods">۰</span></div>
+          <div class="order-total-row" id="vat-row-display" style="display:none"><span>ارزش افزوده ۱۰٪</span><span id="total-vat">۰</span></div>
+          <div class="order-total-row" id="check-fee-row" style="display:none"><span id="check-fee-label">هزینه چک</span><span id="total-check-fee">۰</span></div>
+          <div class="order-total-row final"><span>جمع کل</span><span id="total-final">۰</span></div>
+          <button class="btn-order" onclick="submitOrder()" id="btn-submit-order">ثبت و مشاهده پیش‌فاکتور</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- فاکتور -->
+    <div class="screen" id="screen-invoice">
+      <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center;">
+        <button class="btn-back" onclick="showScreen('catalog')">← بازگشت</button>
+        <button class="btn-print" onclick="printInvoice()">چاپ / PDF</button>
+        <button class="btn-primary" style="width:auto;padding:10px 20px;" onclick="confirmOrder()">تایید نهایی سفارش</button>
+      </div>
+      <div class="invoice-paper" id="invoice-paper"></div>
+    </div>
+
+    <!-- سفارش‌های من -->
+    <div class="screen" id="screen-orders">
+      <div class="page-title">سفارش‌های من</div>
+      <div class="page-sub">تاریخچه و وضعیت سفارش‌ها</div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>شماره</th><th>تاریخ</th><th>محصولات</th><th>مبلغ</th><th>نوع پرداخت</th><th>وضعیت</th></tr></thead>
+            <tbody id="orders-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- پنل ادمین -->
+    <div class="screen" id="screen-admin">
+      <div class="page-title">پنل مدیریت</div>
+      <div class="page-sub">مدیریت کاربران، سفارش‌ها و تنظیمات</div>
+      <div class="admin-grid">
+        <div class="admin-card">
+          <div class="admin-card-title">👥 کاربران در انتظار تایید</div>
+          <div id="pending-users-list">
+            <div class="user-row">
+              <div class="user-row-info"><div class="mini-avatar" style="color:var(--accent)">ع</div><div><div style="font-size:11px;font-weight:600">علی رضایی</div><div style="font-size:10px;color:var(--text3)">نماینده — تهران</div></div></div>
+              <div><button class="btn-reject">رد</button><button class="btn-approve">تایید</button></div>
+            </div>
+            <div class="user-row">
+              <div class="user-row-info"><div class="mini-avatar" style="color:var(--accent4)">ف</div><div><div style="font-size:11px;font-weight:600">فاطمه کریمی</div><div style="font-size:10px;color:var(--text3)">مغازه‌دار — اصفهان</div></div></div>
+              <div><button class="btn-reject">رد</button><button class="btn-approve">تایید</button></div>
+            </div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-title">📋 سفارش‌های در انتظار</div>
+          <div id="pending-orders-admin"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-title">⚙️ تنظیمات فروش</div>
+          <div class="setting-row"><span class="setting-label">حداقل خرید مغازه‌دار (تومان)</span><input class="setting-input" value="20,000,000"></div>
+          <div class="setting-row"><span class="setting-label">حداقل هر SKU — مغازه‌دار</span><input class="setting-input" value="6"></div>
+          <div class="setting-row"><span class="setting-label">نرخ بهره چک (سالانه)</span><input class="setting-input" value="30%"></div>
+          <div class="setting-row">
+            <span class="setting-label">فروش چکی</span>
+            <label class="switch"><input type="checkbox" checked><span class="sw-slider"></span></label>
+          </div>
+          <div class="setting-row"><span class="setting-label">حداکثر روز چک</span><input class="setting-input" value="365"></div>
+        </div>
+        <div class="admin-card">
+          <div class="admin-card-title">📊 خلاصه امروز</div>
+          <div class="setting-row"><span class="setting-label">سفارش ثبت‌شده</span><span style="font-weight:700;color:var(--accent)">۷</span></div>
+          <div class="setting-row"><span class="setting-label">تایید شده</span><span style="font-weight:700;color:var(--accent3)">۵</span></div>
+          <div class="setting-row"><span class="setting-label">مجموع فروش</span><span style="font-weight:700;color:var(--accent4)">۱۸۴ میلیون</span></div>
+          <div class="setting-row"><span class="setting-label">نقدی / چکی</span><span style="font-size:11px;color:var(--text2)">۳ / ۴</span></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- فلوتینگ باتن موبایل -->
+  <div class="floating-order" id="floating-order" style="display:none">
+    <button class="floating-order-btn" onclick="showInvoiceFromFloat()">
+      <span>مشاهده سبد و پیش‌فاکتور</span>
+      <span id="float-total">۰ تومان</span>
+    </button>
+  </div>
+
+  <!-- موبایل نویگیشن -->
+  <div class="mobile-nav">
+    <div class="mobile-nav-items">
+      <div class="mobile-nav-item active" onclick="showScreen('dashboard');setMobileNav(this)">
+        <span class="mobile-nav-icon">📊</span><span>داشبورد</span>
+      </div>
+      <div class="mobile-nav-item" onclick="showScreen('catalog');setMobileNav(this)">
+        <span class="mobile-nav-icon">🛍️</span><span>سفارش</span>
+      </div>
+      <div class="mobile-nav-item" onclick="showScreen('orders');setMobileNav(this)">
+        <span class="mobile-nav-icon">📋</span><span>سفارش‌ها</span>
+      </div>
+      <div class="mobile-nav-item" id="mobile-admin-nav" onclick="showScreen('admin');setMobileNav(this)" style="display:none">
+        <span class="mobile-nav-icon">⚙️</span><span>ادمین</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== SUPABASE CONFIG =====
+const SUPABASE_URL = 'https://uorkgrinbbdcdtimagay.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bgg5RPeVo8abm8mi8AWOhA_lHJsaLS8'; // ← اینجا کلیدت رو بذار
+const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// کاربران دمو (فعلاً نگه می‌داریم تا Supabase Auth آماده بشه)
+const USERS = {
+  admin:  {pass:'admin',name:'مدیر سیستم',type:'admin',role:'ادمین',avatar:'م'},
+  rep1:   {pass:'1234', name:'محمد احمدی', type:'rep',  role:'نماینده فروش',avatar:'م'},
+  shop1:  {pass:'1234', name:'زهرا مرادی', type:'shop', role:'مغازه‌دار',avatar:'ز'},
+};
+
+const PRODUCTS = [
+  {id:1, sku:'RB1',  name:'کرم BB',           cat:'کرم',      emoji:'🧴', priceRep:85000,  priceShop:105000, minRep:6, minShop:6,  stock:200},
+  {id:2, sku:'RB2',  name:'کرم CC',           cat:'کرم',      emoji:'🧴', priceRep:90000,  priceShop:115000, minRep:6, minShop:6,  stock:150},
+  {id:3, sku:'B1',   name:'پنکیک ابریشمی',   cat:'پنکیک',    emoji:'✨', priceRep:120000, priceShop:155000, minRep:6, minShop:6,  stock:300},
+  {id:4, sku:'B2',   name:'پنکیک سنگی',      cat:'پنکیک',    emoji:'💎', priceRep:135000, priceShop:170000, minRep:6, minShop:6,  stock:250},
+  {id:5, sku:'T-120',name:'رژگونه شماره ۱',  cat:'رژگونه',   emoji:'💄', priceRep:75000,  priceShop:95000,  minRep:6, minShop:6,  stock:400},
+  {id:6, sku:'T-230',name:'رژگونه شماره ۲',  cat:'رژگونه',   emoji:'💄', priceRep:75000,  priceShop:95000,  minRep:6, minShop:6,  stock:350},
+  {id:7, sku:'SR1',  name:'کرم موس',          cat:'کرم',      emoji:'🫧', priceRep:95000,  priceShop:120000, minRep:6, minShop:6,  stock:180},
+  {id:8, sku:'410',  name:'سایه چشم ۴۱۰',   cat:'سایه',     emoji:'👁️', priceRep:65000,  priceShop:82000,  minRep:6, minShop:12, stock:500},
+  {id:9, sku:'411',  name:'سایه چشم ۴۱۱',   cat:'سایه',     emoji:'👁️', priceRep:65000,  priceShop:82000,  minRep:6, minShop:12, stock:480},
+  {id:10,sku:'SK1',  name:'کرم گریم جامد',   cat:'کرم گریم', emoji:'🎭', priceRep:110000, priceShop:140000, minRep:6, minShop:6,  stock:220},
+];
+
+let currentUser = null;
+let cart = {};
+let payType = 'cash';
+let checkDays = 30;
+let invType = 'formal';
+let activeFilter = 'همه';
+let orders = JSON.parse(localStorage.getItem('vendra_orders')||'[]');
+
+function fmt(n){return new Intl.NumberFormat('fa-IR').format(Math.round(n));}
+function today(){const d=new Date();return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function switchLoginTab(t){
+  document.querySelectorAll('.login-tab').forEach((b,i)=>b.classList.toggle('active',i===(t==='login'?0:1)));
+  document.getElementById('login-form').style.display=t==='login'?'block':'none';
+  document.getElementById('register-form').style.display=t==='register'?'block':'none';
+}
+
+function quickLogin(u){
+  document.getElementById('login-user').value=u;
+  document.getElementById('login-pass').value=USERS[u].pass;
+  doLogin();
+}
+
+function doLogin(){
+  const u=document.getElementById('login-user').value.trim();
+  const p=document.getElementById('login-pass').value.trim();
+  if(USERS[u]&&USERS[u].pass===p){
+    currentUser={...USERS[u],username:u};
+    setupApp();
+    showPage('page-app');
+  } else {
+    alert('نام کاربری یا رمز اشتباه است');
+  }
+}
+
+function doRegister(){showPage('page-pending');}
+
+function doLogout(){
+  currentUser=null;cart={};
+  showPage('page-login');
+}
+
+function setupApp(){
+  document.getElementById('user-name-display').textContent=currentUser.name;
+  document.getElementById('user-type-display').textContent=currentUser.role;
+  document.getElementById('user-avatar').textContent=currentUser.avatar;
+  document.getElementById('sidebar-role').textContent=currentUser.role;
+  document.getElementById('dash-welcome').textContent=`سلام، ${currentUser.name}!`;
+  const isAdmin=currentUser.type==='admin';
+  document.getElementById('nav-admin').style.display=isAdmin?'flex':'none';
+  document.getElementById('mobile-admin-nav').style.display=isAdmin?'flex':'none';
+  if(currentUser.type==='shop'){
+    document.getElementById('dash-credit').textContent='۳۰ میلیون';
+    document.getElementById('dash-balance').textContent='۵ میلیون';
+  }
+  renderCatalog();
+  renderOrders();
+  showScreen('dashboard');
+}
+
+function showScreen(name){
+  document.querySelectorAll('.screen').forEach(s=>{s.classList.remove('active');s.style.display='none';});
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const s=document.getElementById('screen-'+name);
+  if(name==='catalog'){s.style.display='flex';}
+  else{s.style.display='block';}
+  s.classList.add('active');
+  const nav=document.getElementById('nav-'+name);
+  if(nav)nav.classList.add('active');
+  const titles={dashboard:'داشبورد',catalog:'ثبت سفارش',orders:'سفارش‌های من',admin:'پنل ادمین',invoice:'پیش‌فاکتور'};
+  if(document.getElementById('top-bar-title'))document.getElementById('top-bar-title').textContent=titles[name]||'';
+  if(window.innerWidth<768)closeSidebar();
+}
+
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');}
+function setMobileNav(el){document.querySelectorAll('.mobile-nav-item').forEach(i=>i.classList.remove('active'));el.classList.add('active');}
+
+function renderCatalog(){
+  const cats=['همه',...new Set(PRODUCTS.map(p=>p.cat))];
+  document.getElementById('catalog-filters').innerHTML=cats.map(c=>`<button class="filter-btn${c===activeFilter?' active':''}" onclick="filterCat('${c}')">${c}</button>`).join('');
+  const filtered=activeFilter==='همه'?PRODUCTS:PRODUCTS.filter(p=>p.cat===activeFilter);
+  const isShop=currentUser&&currentUser.type==='shop';
+  document.getElementById('product-grid').innerHTML=filtered.map(p=>{
+    const price=isShop?p.priceShop:p.priceRep;
+    const min=isShop?p.minShop:p.minRep;
+    const qty=cart[p.id]||0;
+    return `<div class="product-card${qty>0?' selected':''}" id="pcard-${p.id}">
+      <div class="product-img">${p.emoji}<span class="sku-badge">${p.sku}</span></div>
+      <div class="product-info">
+        <div class="product-name">${p.name}</div>
+        <div class="product-prices">
+          <div class="price-row"><span class="price-label">قیمت واحد</span><span class="price-val">${fmt(price)} ت</span></div>
+          <div class="price-row"><span class="price-label">حداقل</span><span style="font-size:10px;color:var(--text3)">${min} عدد</span></div>
+        </div>
+        <div class="qty-control">
+          <button class="qty-btn" onclick="changeQty(${p.id},-1,${min})">−</button>
+          <span class="qty-num" id="qty-${p.id}">${qty||0}</span>
+          <button class="qty-btn" onclick="changeQty(${p.id},1,${min})">+</button>
+        </div>
+        <div class="min-note">حداقل سفارش: ${min} عدد</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filterCat(c){activeFilter=c;renderCatalog();}
+
+function changeQty(id,delta,min){
+  const cur=cart[id]||0;
+  let next=cur+delta;
+  if(next<0)next=0;
+  if(next>0&&next<min)next=delta>0?min:0;
+  if(next===0)delete cart[id];else cart[id]=next;
+  document.getElementById('qty-'+id).textContent=next||0;
+  const card=document.getElementById('pcard-'+id);
+  if(card)card.classList.toggle('selected',next>0);
+  updateOrderSidebar();
+}
+
+function updateOrderSidebar(){
+  const items=Object.entries(cart);
+  const isShop=currentUser&&currentUser.type==='shop';
+  const section=document.getElementById('order-total-section');
+  const listEl=document.getElementById('order-items-list');
+  if(items.length===0){
+    listEl.innerHTML='<p style="font-size:11px;color:var(--text3);text-align:center;padding:20px 0">هنوز محصولی انتخاب نشده</p>';
+    section.style.display='none';
+    document.getElementById('floating-order').style.display='none';
+    return;
+  }
+  let subtotal=0;
+  listEl.innerHTML=items.map(([id,qty])=>{
+    const p=PRODUCTS.find(x=>x.id==id);
+    const price=isShop?p.priceShop:p.priceRep;
+    const line=price*qty;subtotal+=line;
+    return `<div class="order-item"><span class="order-item-name">${p.name} ×${qty}</span><span class="order-item-price">${fmt(line)}</span></div>`;
+  }).join('');
+  section.style.display='block';
+  recalcTotals(subtotal);
+  document.getElementById('floating-order').style.display='block';
+  document.getElementById('float-total').textContent=fmt(calcFinalTotal(subtotal))+' ت';
+}
+
+function calcCheckFee(subtotal){
+  if(payType!=='check')return 0;
+  const rate=0.30;
+  return subtotal*(rate/365)*checkDays;
+}
+function calcFinalTotal(subtotal){
+  const fee=calcCheckFee(subtotal);
+  const base=subtotal+fee;
+  return invType==='formal'?base*1.1:base;
+}
+function recalcTotals(subtotal){
+  const fee=calcCheckFee(subtotal);
+  const vat=invType==='formal'?(subtotal+fee)*0.10:0;
+  const total=subtotal+fee+vat;
+  document.getElementById('total-goods').textContent=fmt(subtotal)+' ت';
+  document.getElementById('total-vat').textContent=fmt(vat)+' ت';
+  document.getElementById('total-final').textContent=fmt(total)+' ت';
+  document.getElementById('vat-row-display').style.display=invType==='formal'?'flex':'none';
+  document.getElementById('check-fee-row').style.display=payType==='check'?'flex':'none';
+  if(payType==='check'){
+    document.getElementById('check-fee-label').textContent=`هزینه چک (${checkDays} روز)`;
+    document.getElementById('total-check-fee').textContent=fmt(fee)+' ت';
+  }
+}
+
+function setPayType(t){
+  payType=t;
+  document.querySelectorAll('.pay-btn').forEach((b,i)=>b.classList.toggle('active',i===(t==='cash'?0:1)));
+  document.getElementById('check-days-ctrl').style.display=t==='check'?'block':'none';
+  updateOrderSidebar();
+}
+function updateCheckDays(v){
+  checkDays=parseInt(v);
+  document.getElementById('check-days-val').textContent=v+' روز';
+  updateOrderSidebar();
+}
+function setInvType(t){
+  invType=t;
+  document.querySelectorAll('.inv-btn').forEach((b,i)=>b.classList.toggle('active',i===(t==='formal'?0:1)));
+  updateOrderSidebar();
+}
+
+function getSubtotal(){
+  const isShop=currentUser&&currentUser.type==='shop';
+  return Object.entries(cart).reduce((s,[id,qty])=>{
+    const p=PRODUCTS.find(x=>x.id==id);
+    return s+(isShop?p.priceShop:p.priceRep)*qty;
+  },0);
+}
+
+function submitOrder(){
+  if(Object.keys(cart).length===0){alert('سبد خرید خالی است');return;}
+  showInvoiceScreen();
+}
+function showInvoiceFromFloat(){showInvoiceScreen();}
+
+function showInvoiceScreen(){
+  const isShop=currentUser&&currentUser.type==='shop';
+  const subtotal=getSubtotal();
+  const fee=calcCheckFee(subtotal);
+  const vat=invType==='formal'?(subtotal+fee)*0.10:0;
+  const total=subtotal+fee+vat;
+  const orderNum='#'+Math.floor(1000+Math.random()*9000);
+  const items=Object.entries(cart).map(([id,qty])=>{
+    const p=PRODUCTS.find(x=>x.id==id);
+    const price=isShop?p.priceShop:p.priceRep;
+    return `<tr><td>${p.name}</td><td>${p.sku}</td><td>${fmt(price)}</td><td>${qty}</td><td>${fmt(price*qty)}</td></tr>`;
+  }).join('');
+  const payLabel=payType==='cash'?'نقدی':`چکی ${checkDays} روزه`;
+  document.getElementById('invoice-paper').innerHTML=`
+    <div class="inv-header">
+      <div><div class="inv-brand">Vendra</div><div style="font-size:10px;color:#666;margin-top:4px">پیش‌فاکتور ${invType==='formal'?'رسمی':'غیررسمی'}</div></div>
+      <div class="inv-meta"><strong>${orderNum}</strong>تاریخ: ${today()}<br>نوع: ${payLabel}</div>
+    </div>
+    <div class="inv-parties">
+      <div class="inv-party"><div class="inv-party-title">فروشنده</div><div class="inv-party-name">شرکت سوشیا</div><div class="inv-party-detail">کدفروشگاه: SOSHIA-001</div></div>
+      <div class="inv-party"><div class="inv-party-title">خریدار</div><div class="inv-party-name">${currentUser.name}</div><div class="inv-party-detail">${currentUser.role}</div></div>
+    </div>
+    <table class="inv-table"><thead><tr><th>نام کالا</th><th>کد SKU</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th></tr></thead><tbody>${items}</tbody></table>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="inv-totals">
+        <div class="inv-total-row"><span>جمع کالا</span><span>${fmt(subtotal)} ت</span></div>
+        ${payType==='check'?`<div class="inv-total-row"><span>هزینه چک (${checkDays} روز)</span><span>${fmt(fee)} ت</span></div>`:''}
+        ${invType==='formal'?`<div class="inv-total-row"><span>ارزش افزوده ۱۰٪</span><span>${fmt(vat)} ت</span></div>`:''}
+        <div class="inv-total-row final"><span>جمع کل</span><span>${fmt(total)} ت</span></div>
+      </div>
+    </div>
+    <div class="inv-footer">
+      <div>این پیش‌فاکتور پس از تایید ادمین به فاکتور نهایی تبدیل می‌شود</div>
+      <div class="inv-stamp">در انتظار تایید</div>
+    </div>`;
+  showScreen('invoice');
+  window._pendingOrder={orderNum,items:Object.entries(cart).map(([id,qty])=>({...PRODUCTS.find(x=>x.id==id),qty})),subtotal,fee,vat,total,payType,checkDays,invType,date:today()};
+}
+
+function confirmOrder(){
+  const o=window._pendingOrder;
+  if(!o)return;
+  o.status='pending';
+  o.user=currentUser.name;
+  orders.unshift(o);
+  localStorage.setItem('vendra_orders',JSON.stringify(orders));
+  cart={};
+  renderOrders();
+  alert('سفارش شما با موفقیت ثبت شد و در انتظار تایید ادمین است.');
+  showScreen('orders');
+}
+
+function printInvoice(){window.print();}
+
+function renderOrders(){
+  const tbody=document.getElementById('orders-table-body');
+  if(!orders.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">سفارشی ثبت نشده</td></tr>';return;}
+  tbody.innerHTML=orders.map(o=>`
+    <tr>
+      <td>${o.orderNum}</td>
+      <td>${o.date}</td>
+      <td>${o.items?o.items.length+' قلم':'-'}</td>
+      <td>${fmt(o.total)} ت</td>
+      <td><span class="badge ${o.payType==='cash'?'badge-blue':'badge-orange'}">${o.payType==='cash'?'نقدی':o.checkDays+' روزه'}</span></td>
+      <td><span class="badge ${o.status==='pending'?'badge-gray':'badge-green'}">${o.status==='pending'?'در انتظار':'تایید شده'}</span></td>
+    </tr>`).join('');
+  const adminList=document.getElementById('pending-orders-admin');
+  if(adminList){
+    const pending=orders.filter(o=>o.status==='pending');
+    adminList.innerHTML=pending.length?pending.map(o=>`
+      <div class="user-row">
+        <div><div style="font-size:11px;font-weight:600">${o.orderNum} — ${o.user||'نماینده'}</div><div style="font-size:10px;color:var(--text3)">${fmt(o.total)} ت — ${o.payType==='cash'?'نقدی':o.checkDays+' روزه'}</div></div>
+        <div><button class="btn-reject">رد</button><button class="btn-approve" onclick="approveOrder('${o.orderNum}')">تایید</button></div>
+      </div>`).join(''):'<p style="font-size:11px;color:var(--text3);padding:12px 0">سفارشی در انتظار ندارید</p>';
+  }
+}
+
+function approveOrder(num){
+  const o=orders.find(x=>x.orderNum===num);
+  if(o){o.status='approved';localStorage.setItem('vendra_orders',JSON.stringify(orders));renderOrders();alert('سفارش '+num+' تایید شد.');}
+}
+</script>
+</body>
+</html>
