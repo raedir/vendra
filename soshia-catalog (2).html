@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>کاتالوگ محصولات سوشیا</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #F5EDD6;
+  --gold-dark: #A07830;
+  --red: #C0392B;
+  --red-light: #FDECEA;
+  --black: #1A1A1A;
+  --gray-dark: #3D3D3D;
+  --gray: #6B6B6B;
+  --gray-light: #F2F2F2;
+  --white: #FFFFFF;
+  --border: #E0D8C8;
+  --surface: #FAFAF8;
+  --agent-bg: #EAF3FF;
+  --agent-color: #1A5FAD;
+  --retail-bg: #FFF3E0;
+  --retail-color: #B45309;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 2px 16px rgba(0,0,0,0.08);
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Vazirmatn', sans-serif;
+  background: var(--surface);
+  color: var(--black);
+  min-height: 100vh;
+  direction: rtl;
+}
+
+/* ── Header ── */
+.header {
+  background: var(--black);
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.header-logo {
+  width: 38px;
+  height: 38px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--black);
+}
+.header-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--white);
+  letter-spacing: 0.02em;
+}
+.header-sub {
+  font-size: 10px;
+  color: var(--gold);
+  margin-top: 2px;
+  font-weight: 500;
+}
+.header-badge {
+  background: var(--gold);
+  color: var(--black);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 4px 12px;
+  border-radius: 20px;
+}
+
+/* ── Page container ── */
+.page { max-width: 960px; margin: 0 auto; padding: 28px 20px; }
+
+/* ── Section header ── */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--gold-light);
+}
+.section-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--gray);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.product-count {
+  font-size: 11px;
+  color: var(--gray);
+  background: var(--gray-light);
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+
+/* ── Category card ── */
+.cat-card {
+  background: var(--white);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s;
+}
+.cat-card:hover { box-shadow: 0 4px 24px rgba(0,0,0,0.12); }
+
+.cat-header {
+  display: flex;
+  align-items: center;
+  padding: 14px 18px;
+  cursor: pointer;
+  user-select: none;
+  gap: 14px;
+  background: var(--white);
+  transition: background 0.15s;
+}
+.cat-header:hover { background: var(--gold-light); }
+
+.cat-letter {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--black);
+  flex-shrink: 0;
+  font-family: 'Courier New', monospace;
+}
+
+.cat-info { flex: 1; }
+.cat-name { font-size: 13px; font-weight: 700; color: var(--black); margin-bottom: 3px; }
+.cat-meta { font-size: 10px; color: var(--gray); }
+
+.cat-prices {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.price-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--radius-sm);
+  min-width: 90px;
+}
+.price-badge.agent {
+  background: var(--agent-bg);
+  border: 1px solid #BDD5F5;
+}
+.price-badge.retail {
+  background: var(--retail-bg);
+  border: 1px solid #F5D5A0;
+}
+.price-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  margin-bottom: 2px;
+}
+.price-badge.agent .price-label { color: var(--agent-color); }
+.price-badge.retail .price-label { color: var(--retail-color); }
+.price-value {
+  font-size: 13px;
+  font-weight: 800;
+}
+.price-badge.agent .price-value { color: var(--agent-color); }
+.price-badge.retail .price-value { color: var(--retail-color); }
+.price-unit {
+  font-size: 8px;
+  color: var(--gray);
+  margin-top: 1px;
+}
+
+.cat-toggle {
+  font-size: 16px;
+  color: var(--gray);
+  transition: transform 0.2s;
+  margin-right: 4px;
+}
+.cat-toggle.open { transform: rotate(180deg); }
+
+/* ── SKU list ── */
+.sku-list {
+  display: none;
+  padding: 0 18px 14px;
+  border-top: 1px solid var(--border);
+  background: var(--gray-light);
+}
+.sku-list.open { display: block; }
+
+.sku-list-header {
+  display: grid;
+  grid-template-columns: 1fr 110px 110px 80px;
+  gap: 8px;
+  padding: 10px 12px 6px;
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--gray);
+  letter-spacing: 0.05em;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+
+.sku-row {
+  display: grid;
+  grid-template-columns: 1fr 110px 110px 80px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 5px;
+  font-size: 11px;
+  transition: border-color 0.15s;
+}
+.sku-row:hover { border-color: var(--gold); }
+
+.sku-name-cell { font-weight: 600; color: var(--black); }
+.sku-code { font-size: 9px; color: var(--gray); margin-top: 2px; font-family: monospace; }
+
+.sku-price-agent {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--agent-color);
+  text-align: center;
+}
+.sku-price-retail {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--retail-color);
+  text-align: center;
+}
+.sku-actions {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+.sku-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 3px 5px;
+  border-radius: 5px;
+  transition: background 0.15s;
+}
+.sku-btn:hover { background: var(--gold-light); }
+.sku-btn.del:hover { background: var(--red-light); }
+
+/* ── Add SKU form ── */
+.add-sku-area {
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--white);
+  border: 1.5px dashed var(--gold);
+  border-radius: var(--radius-sm);
+}
+.add-sku-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-label { font-size: 10px; font-weight: 700; color: var(--gray); }
+.field-input {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  font-family: 'Vazirmatn', sans-serif;
+  font-size: 11px;
+  color: var(--black);
+  outline: none;
+  transition: border-color 0.15s;
+  text-align: right;
+  direction: rtl;
+}
+.field-input:focus { border-color: var(--gold); }
+.field-input::placeholder { color: #C0B8A8; }
+
+.btn-add-sku {
+  background: var(--gold);
+  color: var(--black);
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 16px;
+  font-family: 'Vazirmatn', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-add-sku:hover { background: var(--gold-dark); color: var(--white); }
+
+.empty-sku {
+  text-align: center;
+  padding: 18px;
+  font-size: 11px;
+  color: var(--gray);
+}
+
+/* ── Edit inline ── */
+.sku-row.editing { background: #FFFBF0; border-color: var(--gold); }
+.edit-input {
+  background: var(--white);
+  border: 1px solid var(--gold);
+  border-radius: 5px;
+  padding: 4px 7px;
+  font-family: 'Vazirmatn', sans-serif;
+  font-size: 11px;
+  color: var(--black);
+  width: 100%;
+  outline: none;
+  text-align: right;
+}
+
+/* ── Summary bar ── */
+.summary-bar {
+  background: var(--black);
+  color: var(--white);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.summary-item { text-align: center; }
+.summary-num { font-size: 22px; font-weight: 800; color: var(--gold); }
+.summary-lbl { font-size: 10px; color: #AAA; margin-top: 2px; }
+
+/* ── Responsive ── */
+@media(max-width: 640px) {
+  .cat-prices { display: none; }
+  .sku-list-header, .sku-row { grid-template-columns: 1fr 90px 90px 60px; }
+  .add-sku-row { grid-template-columns: 1fr; }
+  .summary-bar { gap: 12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-brand">
+    <div class="header-logo">S</div>
+    <div>
+      <div class="header-title">سوشیا · کاتالوگ محصولات</div>
+      <div class="header-sub">قیمت نماینده و فروشگاه‌دار · سود ۲۰٪</div>
+    </div>
+  </div>
+  <div class="header-badge">Vendra</div>
+</div>
+
+<div class="page">
+
+  <div class="summary-bar">
+    <div class="summary-item">
+      <div class="summary-num" id="total-cats">۸</div>
+      <div class="summary-lbl">دسته محصول</div>
+    </div>
+    <div class="summary-item">
+      <div class="summary-num" id="total-skus">۰</div>
+      <div class="summary-lbl">SKU تعریف‌شده</div>
+    </div>
+    <div class="summary-item">
+      <div style="font-size:11px;color:#AAA;line-height:1.8">
+        قیمت نماینده <span style="color:var(--gold);font-weight:700">Agent</span> · مارجین ۱۵٪<br>
+        قیمت فروشگاه <span style="color:var(--gold);font-weight:700">Retail</span> · مارجین ۲۰٪ روی نماینده
+      </div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <div class="section-title">دسته‌بندی‌ها — روی هر دسته کلیک کن برای مدیریت SKU</div>
+    <div class="product-count" id="sku-count-total">جمع: ۰ SKU</div>
+  </div>
+
+  <div id="catalog-container"></div>
+
+</div>
+
+<script>
+// ── داده‌های اصلی ──
+// قیمت‌ها بر اساس COGS + ۲۰٪ سربار + ۱۰٪ بازاریابی + ۱۰٪ لجستیک + ۱۰٪ فروش + ۳٪ R&D + ۲۰٪ سود
+// Agent = Factory Gate / (1 - 0.15) | Retail = Agent / (1 - 0.20)
+// اعداد از pricing_v3.html استخراج شده
+
+const CATEGORIES = [
+  {
+    id: 'a',
+    name: 'پنکیک ابریشمی دوکاره ۳۰ گرم',
+    cogs_cash: 130000,
+    agent: 351000,
+    retail: 438750,
+    skus: []
+  },
+  {
+    id: 'b',
+    name: 'پنکیک فشرده اکوا ۳۰ گرم',
+    cogs_cash: 130000,
+    agent: 351000,
+    retail: 438750,
+    skus: []
+  },
+  {
+    id: 'c',
+    name: 'کرم پودر فشرده مات ۳۰ گرم',
+    cogs_cash: 195000,
+    agent: 526500,
+    retail: 658125,
+    skus: []
+  },
+  {
+    id: 'd',
+    name: 'کرم موس ۲۲ گرم',
+    cogs_cash: 210000,
+    agent: 567000,
+    retail: 708750,
+    skus: []
+  },
+  {
+    id: 'e',
+    name: 'کرم پودر فشرده دوال فینیش ۲۰ گرم',
+    cogs_cash: 152000,
+    agent: 410400,
+    retail: 513000,
+    skus: []
+  },
+  {
+    id: 'f',
+    name: 'رژگونه مولتی',
+    cogs_cash: 55000,
+    agent: 148500,
+    retail: 185625,
+    skus: []
+  },
+  {
+    id: 'g',
+    name: 'پنکیک دوال فینیش ۱۵ گرم',
+    cogs_cash: 82000,
+    agent: 221400,
+    retail: 276750,
+    skus: []
+  },
+  {
+    id: 'h',
+    name: 'پد هیدرو',
+    cogs_cash: 89000,
+    agent: 240300,
+    retail: 300375,
+    skus: []
+  }
+];
+
+// ── Supabase ──
+const SUPABASE_URL = 'https://uorkgrinbbdcdtimagay.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_bgg5RPeVo8abm8mi8AWOhA_lHJsaLS8';
+const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+
+async function sbFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    ...options,
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': options.prefer || '',
+      ...(options.headers || {})
+    }
+  });
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(err);
+  }
+  const text = await res.text();
+  return text ? JSON.parse(text) : null;
+}
+
+// بارگذاری SKU ها از Supabase
+async function loadData() {
+  try {
+    showLoading(true);
+
+    // گرفتن دسته‌ها از دیتابیس
+    const dbCats = await sbFetch(
+      `categories?tenant_id=eq.${TENANT_ID}&select=id,name&order=created_at.asc`
+    );
+
+    // ساخت map: category_id → cat letter
+    const letters = ['a','b','c','d','e','f','g','h'];
+    const catIdToLetter = {};
+    dbCats.forEach((c, i) => {
+      catIdToLetter[c.id] = letters[i];
+      if (CATEGORIES[i]) CATEGORIES[i].dbCatId = c.id;
+    });
+
+    // ریست SKU های همه دسته‌ها
+    CATEGORIES.forEach(cat => { cat.skus = []; });
+
+    // گرفتن همه محصولات
+    const allProds = await sbFetch(
+      `products?tenant_id=eq.${TENANT_ID}&select=id,name,category_id,active&order=created_at.asc`
+    );
+
+    // IDs محصولات اصلی دسته (همون ۸ تایی که اسم کامل دارن)
+    const mainNames = [
+      'پنکیک ابریشمی دوکاره ۳۰ گرم',
+      'پنکیک فشرده اکوا ۳۰ گرم',
+      'کرم پودر فشرده مات ۳۰ گرم',
+      'کرم موس ۲۲ گرم',
+      'کرم پودر فشرده دوال فینیش ۲۰ گرم',
+      'رژگونه مولتی',
+      'پنکیک دوال فینیش ۱۵ گرم',
+      'پد هیدرو'
+    ];
+
+    allProds.forEach(p => {
+      // اگه اسم محصول از اسم‌های اصلی دسته باشه، نادیده بگیر
+      if (mainNames.includes(p.name)) return;
+      const letter = catIdToLetter[p.category_id];
+      const cat = CATEGORIES.find(c => c.id === letter);
+      if (cat) {
+        cat.skus.push({ id: p.id, name: p.name, code: '' });
+      }
+    });
+
+  } catch(e) {
+    console.error('خطا در بارگذاری:', e);
+    showError('خطا در اتصال به دیتابیس — ' + e.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// ذخیره SKU جدید در Supabase
+async function saveNewSku(catLetter, name, code) {
+  const cat = CATEGORIES.find(c => c.id === catLetter);
+  if (!cat || !cat.dbCatId) throw new Error('دسته پیدا نشد');
+
+  const fullName = code ? `${name} (${code})` : name;
+  const result = await sbFetch('products', {
+    method: 'POST',
+    prefer: 'return=representation',
+    body: JSON.stringify({
+      tenant_id: TENANT_ID,
+      category_id: cat.dbCatId,
+      name: fullName,
+      active: true
+    })
+  });
+  return result[0];
+}
+
+// حذف SKU از Supabase
+async function deleteSkuFromDB(skuId) {
+  await sbFetch(`products?id=eq.${skuId}`, { method: 'DELETE' });
+}
+
+// ویرایش SKU در Supabase
+async function updateSkuInDB(skuId, name, code) {
+  const fullName = code ? `${name} (${code})` : name;
+  await sbFetch(`products?id=eq.${skuId}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ name: fullName })
+  });
+}
+
+function showLoading(show) {
+  const el = document.getElementById('catalog-container');
+  if (show) el.innerHTML = '<div style="text-align:center;padding:60px;color:var(--gray);font-size:13px">⏳ در حال بارگذاری از دیتابیس...</div>';
+}
+
+function showError(msg) {
+  const el = document.getElementById('catalog-container');
+  el.innerHTML = `<div style="text-align:center;padding:40px;color:var(--red);font-size:13px">⚠️ ${msg}</div>`;
+}
+
+function updateSummary() {
+  let total = 0;
+  CATEGORIES.forEach(c => total += c.skus.length);
+  const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  document.getElementById('total-skus').textContent = fa(total);
+  document.getElementById('sku-count-total').textContent = 'جمع: ' + fa(total) + ' SKU';
+}
+
+function toFA(n) {
+  return Math.round(n).toLocaleString('fa-IR');
+}
+
+let openCats = new Set();
+let editingSku = null; // {catId, skuId}
+
+// ── رندر کل کاتالوگ ──
+function render() {
+  const container = document.getElementById('catalog-container');
+  container.innerHTML = '';
+
+  CATEGORIES.forEach(cat => {
+    const isOpen = openCats.has(cat.id);
+    const card = document.createElement('div');
+    card.className = 'cat-card';
+    card.id = 'cat-' + cat.id;
+
+    card.innerHTML = `
+      <div class="cat-header" onclick="toggleCat('${cat.id}')">
+        <div class="cat-letter">${cat.id}</div>
+        <div class="cat-info">
+          <div class="cat-name">${cat.name}</div>
+          <div class="cat-meta">${cat.skus.length} SKU تعریف‌شده · کلیک برای مدیریت شیدها</div>
+        </div>
+        <div class="cat-prices">
+          <div class="price-badge agent">
+            <div class="price-label">نماینده</div>
+            <div class="price-value">${toFA(cat.agent)}</div>
+            <div class="price-unit">تومان</div>
+          </div>
+          <div class="price-badge retail">
+            <div class="price-label">فروشگاه</div>
+            <div class="price-value">${toFA(cat.retail)}</div>
+            <div class="price-unit">تومان</div>
+          </div>
+        </div>
+        <div class="cat-toggle ${isOpen ? 'open' : ''}">▾</div>
+      </div>
+      <div class="sku-list ${isOpen ? 'open' : ''}" id="sku-list-${cat.id}">
+        ${renderSkuList(cat)}
+      </div>
+    `;
+    container.appendChild(card);
+  });
+
+  updateSummary();
+}
+
+function renderSkuList(cat) {
+  let html = '';
+
+  if (cat.skus.length > 0) {
+    html += `
+      <div class="sku-list-header">
+        <div>نام شید / SKU</div>
+        <div style="text-align:center">نماینده (تومان)</div>
+        <div style="text-align:center">فروشگاه (تومان)</div>
+        <div style="text-align:center">عملیات</div>
+      </div>
+    `;
+    cat.skus.forEach(sku => {
+      const isEditing = editingSku && editingSku.catId === cat.id && editingSku.skuId === sku.id;
+      if (isEditing) {
+        html += `
+          <div class="sku-row editing">
+            <div>
+              <input class="edit-input" id="edit-name-${sku.id}" value="${sku.name}" placeholder="نام شید">
+              <input class="edit-input" style="margin-top:4px;font-family:monospace;direction:ltr;text-align:left" id="edit-code-${sku.id}" value="${sku.code || ''}" placeholder="کد SKU (مثلاً RB1)">
+            </div>
+            <div style="text-align:center;font-size:12px;color:var(--agent-color);font-weight:700">${toFA(cat.agent)}</div>
+            <div style="text-align:center;font-size:12px;color:var(--retail-color);font-weight:700">${toFA(cat.retail)}</div>
+            <div class="sku-actions">
+              <button class="sku-btn" onclick="saveSku('${cat.id}','${sku.id}')" title="ذخیره">✓</button>
+              <button class="sku-btn" onclick="cancelEdit()" title="انصراف">✕</button>
+            </div>
+          </div>
+        `;
+      } else {
+        html += `
+          <div class="sku-row">
+            <div class="sku-name-cell">
+              ${sku.name}
+              ${sku.code ? `<div class="sku-code">${sku.code}</div>` : ''}
+            </div>
+            <div class="sku-price-agent">${toFA(cat.agent)}</div>
+            <div class="sku-price-retail">${toFA(cat.retail)}</div>
+            <div class="sku-actions">
+              <button class="sku-btn" onclick="startEdit('${cat.id}','${sku.id}')" title="ویرایش">✏️</button>
+              <button class="sku-btn del" onclick="deleteSku('${cat.id}','${sku.id}')" title="حذف">🗑️</button>
+            </div>
+          </div>
+        `;
+      }
+    });
+  } else {
+    html += `<div class="empty-sku">هنوز شیدی اضافه نشده · از فرم زیر اضافه کن</div>`;
+  }
+
+  html += `
+    <div class="add-sku-area">
+      <div class="add-sku-row">
+        <div class="field-group">
+          <div class="field-label">نام شید / رنگ</div>
+          <input class="field-input" id="inp-name-${cat.id}" placeholder="مثلاً: بژ طبیعی، شکلاتی، هلویی...">
+        </div>
+        <div class="field-group">
+          <div class="field-label">کد SKU</div>
+          <input class="field-input" id="inp-code-${cat.id}" placeholder="مثلاً RB1، T-120" style="direction:ltr;text-align:left">
+        </div>
+        <button class="btn-add-sku" onclick="addSku('${cat.id}')">+ افزودن شید</button>
+      </div>
+    </div>
+  `;
+
+  return html;
+}
+
+function toggleCat(catId) {
+  if (openCats.has(catId)) {
+    openCats.delete(catId);
+  } else {
+    openCats.add(catId);
+  }
+  render();
+  // فوکوس روی input اگه باز شد
+  if (openCats.has(catId)) {
+    setTimeout(() => {
+      const inp = document.getElementById('inp-name-' + catId);
+      if (inp) inp.focus();
+    }, 50);
+  }
+}
+
+async function addSku(catId) {
+  const nameEl = document.getElementById('inp-name-' + catId);
+  const codeEl = document.getElementById('inp-code-' + catId);
+  const name = nameEl.value.trim();
+  const code = codeEl.value.trim();
+  if (!name) { nameEl.focus(); return; }
+
+  try {
+    const btn = document.querySelector(`button[onclick="addSku('${catId}')"]`);
+    if (btn) btn.textContent = '...';
+    const newProd = await saveNewSku(catId, name, code);
+    const cat = CATEGORIES.find(c => c.id === catId);
+    cat.skus.push({ id: newProd.id, name: newProd.name, code: '' });
+    nameEl.value = '';
+    codeEl.value = '';
+    openCats.add(catId);
+    render();
+  } catch(e) {
+    alert('خطا در ذخیره: ' + e.message);
+  }
+}
+
+async function deleteSku(catId, skuId) {
+  if (!confirm('این شید حذف شود؟')) return;
+  try {
+    await deleteSkuFromDB(skuId);
+    const cat = CATEGORIES.find(c => c.id === catId);
+    cat.skus = cat.skus.filter(s => s.id !== skuId);
+    openCats.add(catId);
+    render();
+  } catch(e) {
+    alert('خطا در حذف: ' + e.message);
+  }
+}
+
+function startEdit(catId, skuId) {
+  editingSku = { catId, skuId };
+  openCats.add(catId);
+  render();
+  setTimeout(() => {
+    const el = document.getElementById('edit-name-' + skuId);
+    if (el) el.focus();
+  }, 50);
+}
+
+function cancelEdit() {
+  editingSku = null;
+  render();
+}
+
+async function saveSku(catId, skuId) {
+  const nameEl = document.getElementById('edit-name-' + skuId);
+  const codeEl = document.getElementById('edit-code-' + skuId);
+  const name = nameEl.value.trim();
+  const code = codeEl ? codeEl.value.trim() : '';
+  if (!name) return;
+  try {
+    await updateSkuInDB(skuId, name, code);
+    const cat = CATEGORIES.find(c => c.id === catId);
+    const sku = cat.skus.find(s => s.id === skuId);
+    sku.name = code ? `${name} (${code})` : name;
+    editingSku = null;
+    openCats.add(catId);
+    render();
+  } catch(e) {
+    alert('خطا در ویرایش: ' + e.message);
+  }
+}
+
+// ── Enter key ──
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (editingSku) saveSku(editingSku.catId, editingSku.skuId);
+  }
+  if (e.key === 'Escape') cancelEdit();
+});
+
+// ── init ──
+loadData().then(() => render());
+</script>
+</body>
+</html>
