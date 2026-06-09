@@ -532,19 +532,8 @@ async function loadData() {
 
     // گرفتن همه محصولات
     const allProds = await sbFetch(
-      `products?tenant_id=eq.${TENANT_ID}&select=id,name,category_id,active&order=created_at.asc`
+      `products?tenant_id=eq.${TENANT_ID}&is_variant=eq.true&select=id,name,category_id,active&order=created_at.asc`
     );
-
-    const mainProdIds = new Set([
-      '00000000-0000-0000-0001-000000000001',
-      '00000000-0000-0000-0001-000000000002',
-      '00000000-0000-0000-0001-000000000003',
-      '00000000-0000-0000-0001-000000000004',
-      '00000000-0000-0000-0001-000000000005',
-      '00000000-0000-0000-0001-000000000006',
-      '00000000-0000-0000-0001-000000000007',
-      '00000000-0000-0000-0001-000000000008'
-    ]);
 
     allProds.forEach(p => {
       // اگه اسم محصول از اسم‌های اصلی دسته باشه، نادیده بگیر
