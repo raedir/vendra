@@ -413,17 +413,17 @@ body {
 </div>
 
 <script>
-// قیمت‌ها بر اساس ترتیب ایجاد دسته‌ها در Supabase (created_at asc)
-const PRICE_CONFIG = [
-  { agent: 351000, retail: 438750 },
-  { agent: 351000, retail: 438750 },
-  { agent: 526500, retail: 658125 },
-  { agent: 567000, retail: 708750 },
-  { agent: 410400, retail: 513000 },
-  { agent: 148500, retail: 185625 },
-  { agent: 221400, retail: 276750 },
-  { agent: 240300, retail: 300375 },
-];
+// قیمت‌ها کلیدشون UUID دسته در Supabase — مستقل از ترتیب
+const PRICE_CONFIG = {
+  'b3d06443-771f-4992-826b-211a68b586ff': { agent: 351000, retail: 438750 }, // پنکیک ابریشمی
+  '183d9613-d18f-469f-916d-2db733aee87e': { agent: 351000, retail: 438750 }, // پنکیک فشرده اکوا
+  'dd8b3df3-9cba-45a1-adc6-9bf13ba70391': { agent: 526500, retail: 658125 }, // کرم پودر فشرده مات
+  '39d8b97f-692e-4a2d-a5d5-bb930b9862aa': { agent: 567000, retail: 708750 }, // کرم موس
+  '4c47251a-9880-4727-bbbc-fcffb37224c8': { agent: 410400, retail: 513000 }, // کرم پودر دوال فینیش
+  '6a2d7158-f4ca-40be-b067-cb07af53b672': { agent: 148500, retail: 185625 }, // رژگونه مولتی
+  '33f71c01-7dd8-4d44-9824-af2fde647530': { agent: 221400, retail: 276750 }, // پنکیک دوال فینیش
+  'a8ed9728-bfcc-4004-bfd1-cd58296ab39b': { agent: 240300, retail: 300375 }, // پد هیدرو
+};
 
 // CATEGORIES از Supabase بارگذاری می‌شه — id برابر UUID دیتابیس
 let CATEGORIES = [];
@@ -461,14 +461,13 @@ async function loadData() {
       `categories?tenant_id=eq.${TENANT_ID}&select=id,name&order=created_at.asc`
     );
 
-    // ساخت CATEGORIES از Supabase — id = UUID واقعی
-    const letters = 'abcdefgh';
+    // ساخت CATEGORIES از Supabase — id = UUID، قیمت از PRICE_CONFIG با کلید UUID
     CATEGORIES = dbCats.map((c, i) => ({
       id: c.id,
-      letter: letters[i] || String(i + 1),
+      letter: 'abcdefgh'[i] || String(i + 1),
       name: c.name,
-      agent: (PRICE_CONFIG[i] || {}).agent || 0,
-      retail: (PRICE_CONFIG[i] || {}).retail || 0,
+      agent: (PRICE_CONFIG[c.id] || {}).agent || 0,
+      retail: (PRICE_CONFIG[c.id] || {}).retail || 0,
       skus: [],
     }));
 

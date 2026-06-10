@@ -545,17 +545,17 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
-// جدول قیمت و ایموجی برای هر دسته — با نام دسته در Supabase match می‌شه
-const CATEGORIES = [
-  {id:'a', name:'پنکیک ابریشمی دوکاره ۳۰ گرم',        agent:351000, retail:438750, emoji:'✨'},
-  {id:'b', name:'پنکیک فشرده اکوا ۳۰ گرم',            agent:351000, retail:438750, emoji:'💎'},
-  {id:'c', name:'کرم پودر فشرده مات ۳۰ گرم',          agent:526500, retail:658125, emoji:'🧴'},
-  {id:'d', name:'کرم موس ۲۲ گرم',                     agent:567000, retail:708750, emoji:'🫧'},
-  {id:'e', name:'کرم پودر فشرده دوال فینیش ۲۰ گرم',  agent:410400, retail:513000, emoji:'🌸'},
-  {id:'f', name:'رژگونه مولتی',                        agent:148500, retail:185625, emoji:'💄'},
-  {id:'g', name:'پنکیک دوال فینیش ۱۵ گرم',            agent:221400, retail:276750, emoji:'🎭'},
-  {id:'h', name:'پد هیدرو',                            agent:240300, retail:300375, emoji:'🧼'},
-];
+// قیمت و ایموجی هر دسته — کلید = UUID دسته در Supabase
+const CATEGORY_PRICES = {
+  'b3d06443-771f-4992-826b-211a68b586ff': { emoji:'✨', agent:351000, retail:438750 }, // پنکیک ابریشمی
+  '183d9613-d18f-469f-916d-2db733aee87e': { emoji:'💎', agent:351000, retail:438750 }, // پنکیک فشرده اکوا
+  'dd8b3df3-9cba-45a1-adc6-9bf13ba70391': { emoji:'🧴', agent:526500, retail:658125 }, // کرم پودر فشرده مات
+  '39d8b97f-692e-4a2d-a5d5-bb930b9862aa': { emoji:'🫧', agent:567000, retail:708750 }, // کرم موس
+  '4c47251a-9880-4727-bbbc-fcffb37224c8': { emoji:'🌸', agent:410400, retail:513000 }, // کرم پودر دوال فینیش
+  '6a2d7158-f4ca-40be-b067-cb07af53b672': { emoji:'💄', agent:148500, retail:185625 }, // رژگونه مولتی
+  '33f71c01-7dd8-4d44-9824-af2fde647530': { emoji:'🎭', agent:221400, retail:276750 }, // پنکیک دوال فینیش
+  'a8ed9728-bfcc-4004-bfd1-cd58296ab39b': { emoji:'🧼', agent:240300, retail:300375 }, // پد هیدرو
+};
 let PRODUCTS = [];
 
 async function loadProducts() {
@@ -568,8 +568,8 @@ async function loadProducts() {
     if (catErr) throw catErr;
 
     const catMap = {};
-    dbCats.forEach((c, i) => {
-      const p = CATEGORIES[i] || {};
+    dbCats.forEach(c => {
+      const p = CATEGORY_PRICES[c.id] || {};
       catMap[c.id] = { name: c.name, emoji: p.emoji || '📦', agent: p.agent || 0, retail: p.retail || 0 };
     });
 
