@@ -545,6 +545,7 @@ const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
 const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+// جدول قیمت و ایموجی برای هر دسته — با نام دسته در Supabase match می‌شه
 const CATEGORIES = [
   {id:'a', name:'پنکیک ابریشمی دوکاره ۳۰ گرم',        agent:351000, retail:438750, emoji:'✨'},
   {id:'b', name:'پنکیک فشرده اکوا ۳۰ گرم',            agent:351000, retail:438750, emoji:'💎'},
@@ -567,7 +568,10 @@ async function loadProducts() {
     if (catErr) throw catErr;
 
     const catMap = {};
-    dbCats.forEach((c, i) => { if (CATEGORIES[i]) catMap[c.id] = CATEGORIES[i]; });
+    dbCats.forEach(c => {
+      const cat = CATEGORIES.find(x => x.name === c.name);
+      if (cat) catMap[c.id] = cat;
+    });
 
     const {data:prods, error:prodErr} = await _supabase
       .from('products')

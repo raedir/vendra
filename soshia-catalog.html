@@ -536,8 +536,6 @@ async function loadData() {
     );
 
     allProds.forEach(p => {
-      // اگه اسم محصول از اسم‌های اصلی دسته باشه، نادیده بگیر
-      if (mainProdIds.has(p.id)) return;
       const letter = catIdToLetter[p.category_id];
       const cat = CATEGORIES.find(c => c.id === letter);
       if (cat) {
@@ -566,6 +564,7 @@ async function saveNewSku(catLetter, name, code) {
       tenant_id: TENANT_ID,
       category_id: cat.dbCatId,
       name: fullName,
+      is_variant: true,
       active: true
     })
   });
