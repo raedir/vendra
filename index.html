@@ -544,18 +544,60 @@ const SUPABASE_KEY = 'sb_publishable_bgg5RPeVo8abm8mi8AWOhA_lHJsaLS8'; // ← ا
 const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 
-const PRODUCTS = [
-  {id:1, sku:'RB1',  name:'کرم BB',           cat:'کرم',      emoji:'🧴', priceRep:85000,  priceShop:105000, minRep:6, minShop:6,  stock:200},
-  {id:2, sku:'RB2',  name:'کرم CC',           cat:'کرم',      emoji:'🧴', priceRep:90000,  priceShop:115000, minRep:6, minShop:6,  stock:150},
-  {id:3, sku:'B1',   name:'پنکیک ابریشمی',   cat:'پنکیک',    emoji:'✨', priceRep:120000, priceShop:155000, minRep:6, minShop:6,  stock:300},
-  {id:4, sku:'B2',   name:'پنکیک سنگی',      cat:'پنکیک',    emoji:'💎', priceRep:135000, priceShop:170000, minRep:6, minShop:6,  stock:250},
-  {id:5, sku:'T-120',name:'رژگونه شماره ۱',  cat:'رژگونه',   emoji:'💄', priceRep:75000,  priceShop:95000,  minRep:6, minShop:6,  stock:400},
-  {id:6, sku:'T-230',name:'رژگونه شماره ۲',  cat:'رژگونه',   emoji:'💄', priceRep:75000,  priceShop:95000,  minRep:6, minShop:6,  stock:350},
-  {id:7, sku:'SR1',  name:'کرم موس',          cat:'کرم',      emoji:'🫧', priceRep:95000,  priceShop:120000, minRep:6, minShop:6,  stock:180},
-  {id:8, sku:'410',  name:'سایه چشم ۴۱۰',   cat:'سایه',     emoji:'👁️', priceRep:65000,  priceShop:82000,  minRep:6, minShop:12, stock:500},
-  {id:9, sku:'411',  name:'سایه چشم ۴۱۱',   cat:'سایه',     emoji:'👁️', priceRep:65000,  priceShop:82000,  minRep:6, minShop:12, stock:480},
-  {id:10,sku:'SK1',  name:'کرم گریم جامد',   cat:'کرم گریم', emoji:'🎭', priceRep:110000, priceShop:140000, minRep:6, minShop:6,  stock:220},
+const TENANT_ID = '00000000-0000-0000-0000-000000000001';
+const CATEGORIES = [
+  {id:'a', name:'پنکیک ابریشمی دوکاره ۳۰ گرم',        agent:351000, retail:438750, emoji:'✨'},
+  {id:'b', name:'پنکیک فشرده اکوا ۳۰ گرم',            agent:351000, retail:438750, emoji:'💎'},
+  {id:'c', name:'کرم پودر فشرده مات ۳۰ گرم',          agent:526500, retail:658125, emoji:'🧴'},
+  {id:'d', name:'کرم موس ۲۲ گرم',                     agent:567000, retail:708750, emoji:'🫧'},
+  {id:'e', name:'کرم پودر فشرده دوال فینیش ۲۰ گرم',  agent:410400, retail:513000, emoji:'🌸'},
+  {id:'f', name:'رژگونه مولتی',                        agent:148500, retail:185625, emoji:'💄'},
+  {id:'g', name:'پنکیک دوال فینیش ۱۵ گرم',            agent:221400, retail:276750, emoji:'🎭'},
+  {id:'h', name:'پد هیدرو',                            agent:240300, retail:300375, emoji:'🧼'},
 ];
+let PRODUCTS = [];
+
+async function loadProducts() {
+  try {
+    const {data:dbCats, error:catErr} = await _supabase
+      .from('categories')
+      .select('id,name')
+      .eq('tenant_id', TENANT_ID)
+      .order('created_at', {ascending:true});
+    if (catErr) throw catErr;
+
+    const catMap = {};
+    dbCats.forEach((c, i) => { if (CATEGORIES[i]) catMap[c.id] = CATEGORIES[i]; });
+
+    const {data:prods, error:prodErr} = await _supabase
+      .from('products')
+      .select('id,name,category_id')
+      .eq('tenant_id', TENANT_ID)
+      .eq('is_variant', true)
+      .eq('active', true)
+      .order('created_at', {ascending:true});
+    if (prodErr) throw prodErr;
+
+    PRODUCTS = prods.map(p => {
+      const cat = catMap[p.category_id] || {};
+      const m = p.name.match(/^(.*?)\s*\(([^)]+)\)$/);
+      return {
+        id: p.id,
+        sku: m ? m[2] : '',
+        name: m ? m[1].trim() : p.name,
+        cat: cat.name || 'سایر',
+        emoji: cat.emoji || '📦',
+        priceRep: cat.agent || 0,
+        priceShop: cat.retail || 0,
+        minRep: 6,
+        minShop: 6,
+      };
+    });
+  } catch(e) {
+    console.error('خطا در بارگذاری محصولات:', e);
+    PRODUCTS = [];
+  }
+}
 
 let currentUser = null;
 let cart = {};
@@ -594,7 +636,7 @@ async function doLogin(){
   const {data,error}=await _supabase.auth.signInWithPassword({email,password:pass});
   if(error){alert('خطا: '+error.message);return;}
   currentUser=buildUserFromSession(data.user);
-  setupApp();
+  await setupApp();
   showPage('page-app');
 }
 
@@ -625,7 +667,7 @@ async function initAuth(){
   const {data:{session}}=await _supabase.auth.getSession();
   if(session){
     currentUser=buildUserFromSession(session.user);
-    setupApp();
+    await setupApp();
     showPage('page-app');
   }
 }
@@ -634,7 +676,7 @@ _supabase.auth.onAuthStateChange((event,session)=>{
   if(event==='SIGNED_OUT'){currentUser=null;cart={};showPage('page-login');}
 });
 
-function setupApp(){
+async function setupApp(){
   document.getElementById('user-name-display').textContent=currentUser.name;
   document.getElementById('user-type-display').textContent=currentUser.role;
   document.getElementById('user-avatar').textContent=currentUser.avatar;
@@ -647,6 +689,8 @@ function setupApp(){
     document.getElementById('dash-credit').textContent='۳۰ میلیون';
     document.getElementById('dash-balance').textContent='۵ میلیون';
   }
+  document.getElementById('product-grid').innerHTML='<p style="font-size:12px;color:var(--text3);text-align:center;padding:40px 0">⏳ در حال بارگذاری محصولات...</p>';
+  await loadProducts();
   renderCatalog();
   renderOrders();
   showScreen('dashboard');
@@ -671,6 +715,11 @@ function closeSidebar(){document.getElementById('sidebar').classList.remove('ope
 function setMobileNav(el){document.querySelectorAll('.mobile-nav-item').forEach(i=>i.classList.remove('active'));el.classList.add('active');}
 
 function renderCatalog(){
+  if(!PRODUCTS.length){
+    document.getElementById('catalog-filters').innerHTML='';
+    document.getElementById('product-grid').innerHTML='<p style="font-size:12px;color:var(--text3);text-align:center;padding:40px 0">هیچ محصولی در کاتالوگ ثبت نشده است</p>';
+    return;
+  }
   const cats=['همه',...new Set(PRODUCTS.map(p=>p.cat))];
   document.getElementById('catalog-filters').innerHTML=cats.map(c=>`<button class="filter-btn${c===activeFilter?' active':''}" onclick="filterCat('${c}')">${c}</button>`).join('');
   const filtered=activeFilter==='همه'?PRODUCTS:PRODUCTS.filter(p=>p.cat===activeFilter);
