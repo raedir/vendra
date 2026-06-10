@@ -413,77 +413,20 @@ body {
 </div>
 
 <script>
-// ── داده‌های اصلی ──
-// قیمت‌ها بر اساس COGS + ۲۰٪ سربار + ۱۰٪ بازاریابی + ۱۰٪ لجستیک + ۱۰٪ فروش + ۳٪ R&D + ۲۰٪ سود
-// Agent = Factory Gate / (1 - 0.15) | Retail = Agent / (1 - 0.20)
-// اعداد از pricing_v3.html استخراج شده
-
-const CATEGORIES = [
-  {
-    id: 'a',
-    name: 'پنکیک ابریشمی دوکاره ۳۰ گرم',
-    cogs_cash: 130000,
-    agent: 351000,
-    retail: 438750,
-    skus: []
-  },
-  {
-    id: 'b',
-    name: 'پنکیک فشرده اکوا ۳۰ گرم',
-    cogs_cash: 130000,
-    agent: 351000,
-    retail: 438750,
-    skus: []
-  },
-  {
-    id: 'c',
-    name: 'کرم پودر فشرده مات ۳۰ گرم',
-    cogs_cash: 195000,
-    agent: 526500,
-    retail: 658125,
-    skus: []
-  },
-  {
-    id: 'd',
-    name: 'کرم موس ۲۲ گرم',
-    cogs_cash: 210000,
-    agent: 567000,
-    retail: 708750,
-    skus: []
-  },
-  {
-    id: 'e',
-    name: 'کرم پودر فشرده دوال فینیش ۲۰ گرم',
-    cogs_cash: 152000,
-    agent: 410400,
-    retail: 513000,
-    skus: []
-  },
-  {
-    id: 'f',
-    name: 'رژگونه مولتی',
-    cogs_cash: 55000,
-    agent: 148500,
-    retail: 185625,
-    skus: []
-  },
-  {
-    id: 'g',
-    name: 'پنکیک دوال فینیش ۱۵ گرم',
-    cogs_cash: 82000,
-    agent: 221400,
-    retail: 276750,
-    skus: []
-  },
-  {
-    id: 'h',
-    name: 'پد هیدرو',
-    cogs_cash: 89000,
-    agent: 240300,
-    retail: 300375,
-    skus: []
-  }
+// قیمت‌ها بر اساس ترتیب ایجاد دسته‌ها در Supabase (created_at asc)
+const PRICE_CONFIG = [
+  { agent: 351000, retail: 438750 },
+  { agent: 351000, retail: 438750 },
+  { agent: 526500, retail: 658125 },
+  { agent: 567000, retail: 708750 },
+  { agent: 410400, retail: 513000 },
+  { agent: 148500, retail: 185625 },
+  { agent: 221400, retail: 276750 },
+  { agent: 240300, retail: 300375 },
 ];
+
+// CATEGORIES از Supabase بارگذاری می‌شه — id برابر UUID دیتابیس
+let CATEGORIES = [];
 
 // ── Supabase ──
 const SUPABASE_URL = 'https://uorkgrinbbdcdtimagay.supabase.co';
@@ -514,32 +457,31 @@ async function loadData() {
   try {
     showLoading(true);
 
-    // گرفتن دسته‌ها از دیتابیس
     const dbCats = await sbFetch(
       `categories?tenant_id=eq.${TENANT_ID}&select=id,name&order=created_at.asc`
     );
 
-    // ساخت map: category_id → cat letter
-    const letters = ['a','b','c','d','e','f','g','h'];
-    const catIdToLetter = {};
-    dbCats.forEach((c, i) => {
-      catIdToLetter[c.id] = letters[i];
-      if (CATEGORIES[i]) CATEGORIES[i].dbCatId = c.id;
-    });
+    // ساخت CATEGORIES از Supabase — id = UUID واقعی
+    const letters = 'abcdefgh';
+    CATEGORIES = dbCats.map((c, i) => ({
+      id: c.id,
+      letter: letters[i] || String(i + 1),
+      name: c.name,
+      agent: (PRICE_CONFIG[i] || {}).agent || 0,
+      retail: (PRICE_CONFIG[i] || {}).retail || 0,
+      skus: [],
+    }));
 
-    // ریست SKU های همه دسته‌ها
-    CATEGORIES.forEach(cat => { cat.skus = []; });
-
-    // گرفتن همه محصولات
     const allProds = await sbFetch(
       `products?tenant_id=eq.${TENANT_ID}&is_variant=eq.true&select=id,name,category_id,active&order=created_at.asc`
     );
 
     allProds.forEach(p => {
-      const letter = catIdToLetter[p.category_id];
-      const cat = CATEGORIES.find(c => c.id === letter);
+      // lookup مستقیم با category_id UUID — بدون name matching یا index
+      const cat = CATEGORIES.find(c => c.id === p.category_id);
       if (cat) {
-        cat.skus.push({ id: p.id, name: p.name, code: '' });
+        const m = p.name.match(/^(.*?)\s*\(([^)]+)\)$/);
+        cat.skus.push({ id: p.id, name: m ? m[1].trim() : p.name, code: m ? m[2] : '' });
       }
     });
 
@@ -552,9 +494,9 @@ async function loadData() {
 }
 
 // ذخیره SKU جدید در Supabase
-async function saveNewSku(catLetter, name, code) {
-  const cat = CATEGORIES.find(c => c.id === catLetter);
-  if (!cat || !cat.dbCatId) throw new Error('دسته پیدا نشد');
+async function saveNewSku(catId, name, code) {
+  const cat = CATEGORIES.find(c => c.id === catId);
+  if (!cat) throw new Error('دسته پیدا نشد');
 
   const fullName = code ? `${name} (${code})` : name;
   const result = await sbFetch('products', {
@@ -562,7 +504,7 @@ async function saveNewSku(catLetter, name, code) {
     prefer: 'return=representation',
     body: JSON.stringify({
       tenant_id: TENANT_ID,
-      category_id: cat.dbCatId,
+      category_id: cat.id,
       name: fullName,
       is_variant: true,
       active: true
@@ -599,6 +541,7 @@ function updateSummary() {
   let total = 0;
   CATEGORIES.forEach(c => total += c.skus.length);
   const fa = n => String(n).replace(/\d/g, d => '۰۱۲۳۴۵۶۷۸۹'[d]);
+  document.getElementById('total-cats').textContent = fa(CATEGORIES.length);
   document.getElementById('total-skus').textContent = fa(total);
   document.getElementById('sku-count-total').textContent = 'جمع: ' + fa(total) + ' SKU';
 }
@@ -623,7 +566,7 @@ function render() {
 
     card.innerHTML = `
       <div class="cat-header" onclick="toggleCat('${cat.id}')">
-        <div class="cat-letter">${cat.id}</div>
+        <div class="cat-letter">${cat.letter}</div>
         <div class="cat-info">
           <div class="cat-name">${cat.name}</div>
           <div class="cat-meta">${cat.skus.length} SKU تعریف‌شده · کلیک برای مدیریت شیدها</div>
@@ -749,7 +692,7 @@ async function addSku(catId) {
     if (btn) btn.textContent = '...';
     const newProd = await saveNewSku(catId, name, code);
     const cat = CATEGORIES.find(c => c.id === catId);
-    cat.skus.push({ id: newProd.id, name: newProd.name, code: '' });
+    cat.skus.push({ id: newProd.id, name, code });
     nameEl.value = '';
     codeEl.value = '';
     openCats.add(catId);

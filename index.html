@@ -568,9 +568,9 @@ async function loadProducts() {
     if (catErr) throw catErr;
 
     const catMap = {};
-    dbCats.forEach(c => {
-      const cat = CATEGORIES.find(x => x.name === c.name);
-      if (cat) catMap[c.id] = cat;
+    dbCats.forEach((c, i) => {
+      const p = CATEGORIES[i] || {};
+      catMap[c.id] = { name: c.name, emoji: p.emoji || '📦', agent: p.agent || 0, retail: p.retail || 0 };
     });
 
     const {data:prods, error:prodErr} = await _supabase
