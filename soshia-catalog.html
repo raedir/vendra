@@ -537,7 +537,7 @@ async function loadData() {
 
     allProds.forEach(p => {
       // اگه اسم محصول از اسم‌های اصلی دسته باشه، نادیده بگیر
-      if (mainNames.includes(p.name)) return;
+      if (mainProdIds.has(p.id)) return;
       const letter = catIdToLetter[p.category_id];
       const cat = CATEGORIES.find(c => c.id === letter);
       if (cat) {
