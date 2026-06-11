@@ -472,7 +472,7 @@ async function loadData() {
     }));
 
     const allProds = await sbFetch(
-      `products?tenant_id=eq.${TENANT_ID}&is_variant=eq.true&select=id,name,category_id,active&order=created_at.asc`
+      `products?tenant_id=eq.${TENANT_ID}&is_variant=eq.true&active=eq.true&select=id,name,category_id&order=created_at.asc`
     );
 
     allProds.forEach(p => {
