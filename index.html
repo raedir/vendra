@@ -887,7 +887,7 @@ function showInvoiceScreen(){
       <div class="inv-stamp">در انتظار تایید</div>
     </div>`;
   showScreen('invoice');
-  window._pendingOrder={orderNum,items:Object.entries(cart).map(([id,qty])=>({...PRODUCTS.find(x=>x.id==id),qty})),subtotal,fee,vat,total,payType,checkDays,invType,date:today()};
+  window._pendingOrder={orderNum,items:Object.entries(cart).map(([id,qty])=>({...PRODUCTS.find(x=>String(x.id)===String(id)),qty})),subtotal,fee,vat,total,payType,checkDays,invType,date:today()};
 }
 
 async function confirmOrder(){
