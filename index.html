@@ -614,7 +614,7 @@ let payType = 'cash';
 let checkDays = 30;
 let invType = 'formal';
 let activeFilter = 'همه';
-let orders = JSON.parse(localStorage.getItem('vendra_orders')||'[]');
+let orders = [];
 
 function fmt(n){return new Intl.NumberFormat('fa-IR').format(Math.round(n));}
 function today(){const d=new Date();return `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;}
@@ -635,7 +635,7 @@ function buildUserFromSession(user){
   const type=meta.type||'rep';
   const roleMap={admin:'ادمین',rep:'نماینده فروش',shop:'مغازه‌دار'};
   const name=meta.name||user.email;
-  return {username:user.email,name,type,role:meta.role||roleMap[type]||'نماینده فروش',avatar:name[0]||'ک'};
+  return {id:user.id,username:user.email,name,type,role:meta.role||roleMap[type]||'نماینده فروش',avatar:name[0]||'ک'};
 }
 
 async function doLogin(){
@@ -717,6 +717,7 @@ function showScreen(name){
   const titles={dashboard:'داشبورد',catalog:'ثبت سفارش',orders:'سفارش‌های من',admin:'پنل ادمین',invoice:'پیش‌فاکتور'};
   if(document.getElementById('top-bar-title'))document.getElementById('top-bar-title').textContent=titles[name]||'';
   if(window.innerWidth<768)closeSidebar();
+  if(name==='orders'||name==='admin') renderOrders();
 }
 
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
@@ -889,47 +890,92 @@ function showInvoiceScreen(){
   window._pendingOrder={orderNum,items:Object.entries(cart).map(([id,qty])=>({...PRODUCTS.find(x=>x.id==id),qty})),subtotal,fee,vat,total,payType,checkDays,invType,date:today()};
 }
 
-function confirmOrder(){
+async function confirmOrder(){
   const o=window._pendingOrder;
   if(!o)return;
-  o.status='pending';
-  o.user=currentUser.name;
-  orders.unshift(o);
-  localStorage.setItem('vendra_orders',JSON.stringify(orders));
-  cart={};
-  renderOrders();
-  alert('سفارش شما با موفقیت ثبت شد و در انتظار تایید ادمین است.');
-  showScreen('orders');
+  const btn=document.querySelector('#screen-invoice .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='در حال ثبت...';}
+  try{
+    const {data:orderRow,error:oErr}=await _supabase.from('orders').insert({
+      tenant_id:TENANT_ID,
+      user_id:currentUser.id,
+      order_num:o.orderNum,
+      pay_type:o.payType,
+      check_days:o.payType==='check'?o.checkDays:null,
+      inv_type:o.invType,
+      subtotal:o.subtotal,
+      fee:o.fee,
+      vat:o.vat,
+      total:o.total,
+      status:'pending'
+    }).select('id').single();
+    if(oErr)throw oErr;
+    const itemRows=o.items.map(it=>({
+      order_id:orderRow.id,
+      product_id:it.id,
+      product_name:it.name,
+      qty:it.qty,
+      unit_price:currentUser.type==='shop'?it.priceShop:it.priceRep,
+      line_total:(currentUser.type==='shop'?it.priceShop:it.priceRep)*it.qty
+    }));
+    const {error:iErr}=await _supabase.from('order_items').insert(itemRows);
+    if(iErr)throw iErr;
+    cart={};
+    window._pendingOrder=null;
+    await renderOrders();
+    alert('سفارش شما با موفقیت ثبت شد و در انتظار تایید ادمین است.');
+    showScreen('orders');
+  }catch(e){
+    alert('خطا در ثبت سفارش: '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='تایید نهایی سفارش';}
+  }
 }
 
 function printInvoice(){window.print();}
 
-function renderOrders(){
+async function renderOrders(){
   const tbody=document.getElementById('orders-table-body');
+  tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">در حال بارگذاری...</td></tr>';
+  let qb=_supabase.from('orders').select('id,order_num,created_at,pay_type,check_days,total,status,order_items(id)').eq('tenant_id',TENANT_ID).order('created_at',{ascending:false});
+  if(currentUser.type!=='admin') qb=qb.eq('user_id',currentUser.id);
+  const {data,error}=await qb;
+  if(error){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">خطا در بارگذاری</td></tr>';return;}
+  orders=data||[];
   if(!orders.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--text3);padding:20px">سفارشی ثبت نشده</td></tr>';return;}
-  tbody.innerHTML=orders.map(o=>`
-    <tr>
-      <td>${o.orderNum}</td>
-      <td>${o.date}</td>
-      <td>${o.items?o.items.length+' قلم':'-'}</td>
+  tbody.innerHTML=orders.map(o=>{
+    const d=new Date(o.created_at);
+    const date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    const itemCount=o.order_items?o.order_items.length+' قلم':'-';
+    const payLabel=o.pay_type==='cash'?'نقدی':(o.check_days||'')+ ' روزه';
+    const payBadge=o.pay_type==='cash'?'badge-blue':'badge-orange';
+    const statusLabel=o.status==='pending'?'در انتظار':o.status==='approved'?'تایید شده':'رد شده';
+    const statusBadge=o.status==='pending'?'badge-gray':o.status==='approved'?'badge-green':'badge-red';
+    return `<tr>
+      <td>${o.order_num}</td>
+      <td>${date}</td>
+      <td>${itemCount}</td>
       <td>${fmt(o.total)} ت</td>
-      <td><span class="badge ${o.payType==='cash'?'badge-blue':'badge-orange'}">${o.payType==='cash'?'نقدی':o.checkDays+' روزه'}</span></td>
-      <td><span class="badge ${o.status==='pending'?'badge-gray':'badge-green'}">${o.status==='pending'?'در انتظار':'تایید شده'}</span></td>
-    </tr>`).join('');
+      <td><span class="badge ${payBadge}">${payLabel}</span></td>
+      <td><span class="badge ${statusBadge}">${statusLabel}</span></td>
+    </tr>`;
+  }).join('');
   const adminList=document.getElementById('pending-orders-admin');
   if(adminList){
     const pending=orders.filter(o=>o.status==='pending');
     adminList.innerHTML=pending.length?pending.map(o=>`
       <div class="user-row">
-        <div><div style="font-size:11px;font-weight:600">${o.orderNum} — ${o.user||'نماینده'}</div><div style="font-size:10px;color:var(--text3)">${fmt(o.total)} ت — ${o.payType==='cash'?'نقدی':o.checkDays+' روزه'}</div></div>
-        <div><button class="btn-reject">رد</button><button class="btn-approve" onclick="approveOrder('${o.orderNum}')">تایید</button></div>
+        <div><div style="font-size:11px;font-weight:600">${o.order_num}</div><div style="font-size:10px;color:var(--text3)">${fmt(o.total)} ت — ${o.pay_type==='cash'?'نقدی':(o.check_days||'')+' روزه'}</div></div>
+        <div><button class="btn-reject">رد</button><button class="btn-approve" onclick="approveOrder('${o.id}','${o.order_num}')">تایید</button></div>
       </div>`).join(''):'<p style="font-size:11px;color:var(--text3);padding:12px 0">سفارشی در انتظار ندارید</p>';
   }
 }
 
-function approveOrder(num){
-  const o=orders.find(x=>x.orderNum===num);
-  if(o){o.status='approved';localStorage.setItem('vendra_orders',JSON.stringify(orders));renderOrders();alert('سفارش '+num+' تایید شد.');}
+async function approveOrder(id,num){
+  const {error}=await _supabase.from('orders').update({status:'approved'}).eq('id',id);
+  if(error){alert('خطا: '+error.message);return;}
+  await renderOrders();
+  alert('سفارش '+num+' تایید شد.');
 }
 
 initAuth();
