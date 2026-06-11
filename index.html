@@ -65,6 +65,9 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);m
 .btn-primary:hover{opacity:0.85;}
 .login-hint{font-size:11px;color:var(--text3);text-align:center;margin-top:16px;}
 .login-hint span{color:var(--gold);cursor:pointer;}
+.login-role-toggle{display:flex;background:var(--surface2);border-radius:var(--radius-xs);padding:3px;gap:3px;margin-bottom:20px;}
+.role-btn{flex:1;padding:7px 8px;border:none;border-radius:5px;background:transparent;color:var(--text2);font-family:'Vazirmatn',sans-serif;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;}
+.role-btn.active{background:var(--gold);color:var(--black);}
 
 /* ===== PENDING PAGE ===== */
 #page-pending{align-items:center;justify-content:center;flex-direction:column;gap:16px;background:var(--bg);}
@@ -274,9 +277,13 @@ input:checked+.sw-slider:before{transform:translateX(-16px);background:var(--bla
       <button class="login-tab" id="tab-register" onclick="switchLoginTab('register')">ثبت‌نام</button>
     </div>
     <div id="login-form">
+      <div class="login-role-toggle">
+        <button class="role-btn active" id="role-btn-user" onclick="switchLoginRole('user')">نماینده / فروشگاه‌دار</button>
+        <button class="role-btn" id="role-btn-admin" onclick="switchLoginRole('admin')">ادمین</button>
+      </div>
       <div class="field">
-        <label>شماره موبایل</label>
-        <input type="tel" id="login-mobile" placeholder="09xxxxxxxxxx" dir="ltr">
+        <label id="login-field-label">شماره موبایل</label>
+        <input type="tel" id="login-credential" placeholder="09xxxxxxxxxx" dir="ltr">
       </div>
       <div class="field">
         <label>رمز عبور</label>
@@ -635,16 +642,46 @@ function buildUserFromSession(user){
   return {id:user.id,username:user.email,name,type,role:meta.role||roleMap[type]||'نماینده فروش',avatar:name[0]||'ک'};
 }
 
+let loginRole='user';
+
+function switchLoginRole(role){
+  loginRole=role;
+  document.getElementById('role-btn-user').classList.toggle('active',role==='user');
+  document.getElementById('role-btn-admin').classList.toggle('active',role==='admin');
+  const input=document.getElementById('login-credential');
+  const label=document.getElementById('login-field-label');
+  if(role==='admin'){
+    label.textContent='ایمیل';
+    input.type='email';
+    input.placeholder='admin@example.com';
+    input.removeAttribute('dir');
+  } else {
+    label.textContent='شماره موبایل';
+    input.type='tel';
+    input.placeholder='09xxxxxxxxxx';
+    input.setAttribute('dir','ltr');
+  }
+  input.value='';
+}
+
 async function doLogin(){
-  const mobile=document.getElementById('login-mobile').value.trim();
+  const credential=document.getElementById('login-credential').value.trim();
   const pass=document.getElementById('login-pass').value.trim();
-  if(!mobile||!pass){alert('شماره موبایل و رمز عبور را وارد کنید');return;}
-  const email=mobile+'@vendra.app';
-  const {data,error}=await _supabase.auth.signInWithPassword({email,password:pass});
-  if(error){alert('خطا در ورود: شماره موبایل یا رمز عبور اشتباه است');return;}
-  currentUser=buildUserFromSession(data.user);
-  await setupApp();
-  showPage('page-app');
+  if(!credential||!pass){alert('لطفاً همه فیلدها را پر کنید');return;}
+  const email=loginRole==='admin'?credential:credential+'@vendra.app';
+  const btn=document.querySelector('#login-form .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='در حال ورود...';}
+  try{
+    const {data,error}=await _supabase.auth.signInWithPassword({email,password:pass});
+    if(error)throw error;
+    currentUser=buildUserFromSession(data.user);
+    await setupApp();
+    showPage('page-app');
+  }catch(e){
+    alert(loginRole==='admin'?'خطا در ورود: ایمیل یا رمز عبور اشتباه است':'خطا در ورود: شماره موبایل یا رمز عبور اشتباه است');
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='ورود به پورتال';}
+  }
 }
 
 async function doRegister(){
