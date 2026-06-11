@@ -747,9 +747,9 @@ function renderCatalog(){
           <div class="price-row"><span class="price-label">حداقل</span><span style="font-size:10px;color:var(--text3)">${min} عدد</span></div>
         </div>
         <div class="qty-control">
-          <button class="qty-btn" onclick="changeQty(${p.id},-1,${min})">−</button>
+          <button class="qty-btn" onclick="changeQty('${p.id}',-1,${min})">−</button>
           <span class="qty-num" id="qty-${p.id}">${qty||0}</span>
-          <button class="qty-btn" onclick="changeQty(${p.id},1,${min})">+</button>
+          <button class="qty-btn" onclick="changeQty('${p.id}',1,${min})">+</button>
         </div>
         <div class="min-note">حداقل سفارش: ${min} عدد</div>
       </div>
