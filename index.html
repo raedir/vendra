@@ -481,18 +481,9 @@ input:checked+.sw-slider:before{transform:translateX(-16px);background:var(--bla
       <div class="page-title">پنل مدیریت</div>
       <div class="page-sub">مدیریت کاربران، سفارش‌ها و تنظیمات</div>
       <div class="admin-grid">
-        <div class="admin-card">
+        <div class="admin-card" style="grid-column:1/-1">
           <div class="admin-card-title">👥 کاربران در انتظار تایید</div>
-          <div id="pending-users-list">
-            <div class="user-row">
-              <div class="user-row-info"><div class="mini-avatar" style="color:var(--accent)">ع</div><div><div style="font-size:11px;font-weight:600">علی رضایی</div><div style="font-size:10px;color:var(--text3)">نماینده — تهران</div></div></div>
-              <div><button class="btn-reject">رد</button><button class="btn-approve">تایید</button></div>
-            </div>
-            <div class="user-row">
-              <div class="user-row-info"><div class="mini-avatar" style="color:var(--accent4)">ف</div><div><div style="font-size:11px;font-weight:600">فاطمه کریمی</div><div style="font-size:10px;color:var(--text3)">مغازه‌دار — اصفهان</div></div></div>
-              <div><button class="btn-reject">رد</button><button class="btn-approve">تایید</button></div>
-            </div>
-          </div>
+          <div id="pending-users-list"><p style="font-size:11px;color:var(--text3);padding:8px 0">در حال بارگذاری...</p></div>
         </div>
         <div class="admin-card">
           <div class="admin-card-title">📋 سفارش‌های در انتظار</div>
@@ -751,6 +742,7 @@ function showScreen(name){
   if(document.getElementById('top-bar-title'))document.getElementById('top-bar-title').textContent=titles[name]||'';
   if(window.innerWidth<768)closeSidebar();
   if(name==='orders'||name==='admin') renderOrders();
+  if(name==='admin') loadPendingUsers();
 }
 
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');}
@@ -1009,6 +1001,46 @@ async function approveOrder(id,num){
   if(error){alert('خطا: '+error.message);return;}
   await renderOrders();
   alert('سفارش '+num+' تایید شد.');
+}
+
+async function loadPendingUsers(){
+  const el=document.getElementById('pending-users-list');
+  if(!el)return;
+  el.innerHTML='<p style="font-size:11px;color:var(--text3);padding:8px 0">در حال بارگذاری...</p>';
+  const {data,error}=await _supabase
+    .from('users')
+    .select('id,name,mobile,type,role,status,created_at')
+    .eq('tenant_id',TENANT_ID)
+    .eq('status','pending')
+    .order('created_at',{ascending:false});
+  if(error){el.innerHTML='<p style="font-size:11px;color:var(--danger);padding:8px 0">خطا در بارگذاری</p>';return;}
+  if(!data||!data.length){el.innerHTML='<p style="font-size:11px;color:var(--text3);padding:8px 0">کاربری در انتظار تایید نیست</p>';return;}
+  el.innerHTML=data.map(u=>{
+    const d=new Date(u.created_at);
+    const date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+    const typeLabel=u.type==='shop'?'فروشگاه‌دار':'نماینده فروش';
+    const avatar=(u.name||'?')[0];
+    return `<div class="user-row">
+      <div class="user-row-info">
+        <div class="mini-avatar">${avatar}</div>
+        <div>
+          <div style="font-size:11px;font-weight:600">${u.name||'-'}</div>
+          <div style="font-size:10px;color:var(--text3)">${u.mobile||'-'} — ${typeLabel}</div>
+          <div style="font-size:10px;color:var(--text3)">ثبت‌نام: ${date}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:6px;flex-shrink:0">
+        <button class="btn-reject" onclick="reviewUser('${u.id}','rejected')">رد</button>
+        <button class="btn-approve" onclick="reviewUser('${u.id}','active')">تایید</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function reviewUser(id,status){
+  const {error}=await _supabase.from('users').update({status}).eq('id',id);
+  if(error){alert('خطا: '+error.message);return;}
+  await loadPendingUsers();
 }
 
 initAuth();
