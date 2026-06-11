@@ -48,7 +48,7 @@ body{font-family:'Vazirmatn',sans-serif;background:var(--bg);color:var(--text);m
 .login-bg .orb{position:absolute;border-radius:50%;filter:blur(100px);opacity:0.12;}
 .login-bg .orb1{width:400px;height:400px;background:var(--gold);top:-100px;right:-100px;}
 .login-bg .orb2{width:300px;height:300px;background:var(--gold-dark);bottom:-50px;left:-50px;}
-.login-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:420px;position:relative;z-index:1;box-shadow:0 8px 40px rgba(0,0,0,0.4);}
+.login-card{background:var(--surface);border:1.5px solid var(--border);border-radius:16px;padding:40px;width:100%;max-width:420px;position:relative;z-index:1;box-shadow:0 8px 40px rgba(0,0,0,0.4);max-height:90vh;overflow-y:auto;}
 .login-logo{text-align:center;margin-bottom:28px;}
 .login-logo .brand{font-size:28px;font-weight:800;letter-spacing:-1px;background:linear-gradient(135deg,var(--gold),var(--gold-dark));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
 .login-logo p{font-size:12px;color:var(--text2);margin-top:4px;}
@@ -270,52 +270,58 @@ input:checked+.sw-slider:before{transform:translateX(-16px);background:var(--bla
       <p>پلتفرم هوشمند فروش و سفارش</p>
     </div>
     <div class="login-tabs">
-      <button class="login-tab active" onclick="switchLoginTab('login')">ورود</button>
-      <button class="login-tab" onclick="switchLoginTab('register')">ثبت‌نام</button>
+      <button class="login-tab active" id="tab-login" onclick="switchLoginTab('login')">ورود</button>
+      <button class="login-tab" id="tab-register" onclick="switchLoginTab('register')">ثبت‌نام</button>
     </div>
     <div id="login-form">
       <div class="field">
-        <label>ایمیل</label>
-        <input type="email" id="login-email" placeholder="example@email.com">
+        <label>شماره موبایل</label>
+        <input type="tel" id="login-mobile" placeholder="09xxxxxxxxxx" dir="ltr">
       </div>
       <div class="field">
         <label>رمز عبور</label>
         <input type="password" id="login-pass" placeholder="••••••••">
       </div>
       <button class="btn-primary" onclick="doLogin()">ورود به پورتال</button>
+      <div class="login-hint">حساب کاربری ندارید؟ <span onclick="switchLoginTab('register')">ثبت‌نام کنید</span></div>
     </div>
     <div id="register-form" style="display:none">
       <div class="field">
-        <label>نام و نام خانوادگی</label>
+        <label>نام و نام خانوادگی <span style="color:var(--danger)">*</span></label>
         <input type="text" id="reg-name" placeholder="نام کامل">
       </div>
       <div class="field">
-        <label>ایمیل</label>
-        <input type="email" id="reg-email" placeholder="example@email.com">
+        <label>شماره موبایل <span style="color:var(--danger)">*</span></label>
+        <input type="tel" id="reg-mobile" placeholder="09xxxxxxxxxx" dir="ltr">
       </div>
       <div class="field">
-        <label>رمز عبور</label>
+        <label>رمز عبور <span style="color:var(--danger)">*</span></label>
         <input type="password" id="reg-pass" placeholder="حداقل ۶ کاراکتر">
       </div>
       <div class="field">
-        <label>شماره موبایل</label>
-        <input type="text" id="reg-phone" placeholder="09xxxxxxxxx">
-      </div>
-      <div class="field">
-        <label>نوع کاربر</label>
+        <label>نوع <span style="color:var(--danger)">*</span></label>
         <select id="reg-type">
-          <option value="rep">نماینده</option>
-          <option value="shop">مغازه‌دار</option>
+          <option value="">انتخاب کنید...</option>
+          <option value="rep">نماینده فروش</option>
+          <option value="shop">فروشگاه‌دار</option>
         </select>
       </div>
       <div class="field">
-        <label>استان</label>
-        <select id="reg-province">
-          <option>تهران</option><option>اصفهان</option><option>مشهد</option>
-          <option>شیراز</option><option>تبریز</option><option>اهواز</option><option>سایر</option>
-        </select>
+        <label>آدرس</label>
+        <input type="text" id="reg-address" placeholder="آدرس کامل (اختیاری)">
       </div>
-      <button class="btn-primary" onclick="doRegister()">ارسال درخواست</button>
+      <div style="display:flex;gap:10px">
+        <div class="field" style="flex:1">
+          <label>کد پستی</label>
+          <input type="text" id="reg-postal" placeholder="کد پستی" dir="ltr">
+        </div>
+        <div class="field" style="flex:1">
+          <label>شماره ثابت</label>
+          <input type="tel" id="reg-landline" placeholder="021xxxxxxxx" dir="ltr">
+        </div>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">ارسال درخواست ثبت‌نام</button>
+      <div class="login-hint">حساب دارید؟ <span onclick="switchLoginTab('login')">وارد شوید</span></div>
     </div>
   </div>
 </div>
@@ -639,11 +645,12 @@ function buildUserFromSession(user){
 }
 
 async function doLogin(){
-  const email=document.getElementById('login-email').value.trim();
+  const mobile=document.getElementById('login-mobile').value.trim();
   const pass=document.getElementById('login-pass').value.trim();
-  if(!email||!pass){alert('ایمیل و رمز عبور را وارد کنید');return;}
+  if(!mobile||!pass){alert('شماره موبایل و رمز عبور را وارد کنید');return;}
+  const email=mobile+'@vendra.app';
   const {data,error}=await _supabase.auth.signInWithPassword({email,password:pass});
-  if(error){alert('خطا: '+error.message);return;}
+  if(error){alert('خطا در ورود: شماره موبایل یا رمز عبور اشتباه است');return;}
   currentUser=buildUserFromSession(data.user);
   await setupApp();
   showPage('page-app');
@@ -651,19 +658,45 @@ async function doLogin(){
 
 async function doRegister(){
   const name=document.getElementById('reg-name').value.trim();
-  const email=document.getElementById('reg-email').value.trim();
+  const mobile=document.getElementById('reg-mobile').value.trim();
   const pass=document.getElementById('reg-pass').value.trim();
-  const phone=document.getElementById('reg-phone').value.trim();
   const type=document.getElementById('reg-type').value;
-  const province=document.getElementById('reg-province').value;
-  if(!name||!email||!pass){alert('نام، ایمیل و رمز عبور الزامی است');return;}
-  const roleMap={rep:'نماینده فروش',shop:'مغازه‌دار'};
-  const {error}=await _supabase.auth.signUp({
-    email,password:pass,
-    options:{data:{name,phone,type,province,role:roleMap[type]||'نماینده فروش'}}
-  });
-  if(error){alert('خطا: '+error.message);return;}
-  showPage('page-pending');
+  const address=document.getElementById('reg-address').value.trim();
+  const postal=document.getElementById('reg-postal').value.trim();
+  const landline=document.getElementById('reg-landline').value.trim();
+  if(!name){alert('نام و نام خانوادگی الزامی است');return;}
+  if(!mobile||!/^09\d{9}$/.test(mobile)){alert('شماره موبایل معتبر وارد کنید (مثال: 09123456789)');return;}
+  if(!pass||pass.length<6){alert('رمز عبور باید حداقل ۶ کاراکتر باشد');return;}
+  if(!type){alert('نوع کاربر را انتخاب کنید');return;}
+  const roleMap={rep:'نماینده فروش',shop:'فروشگاه‌دار'};
+  const email=mobile+'@vendra.app';
+  const btn=document.querySelector('#register-form .btn-primary');
+  if(btn){btn.disabled=true;btn.textContent='در حال ثبت‌نام...';}
+  try{
+    const {data,error}=await _supabase.auth.signUp({
+      email,password:pass,
+      options:{data:{name,mobile,type,role:roleMap[type]}}
+    });
+    if(error)throw error;
+    const {error:profileErr}=await _supabase.from('users').insert({
+      id:data.user.id,
+      tenant_id:TENANT_ID,
+      name,
+      mobile,
+      landline:landline||null,
+      address:address||null,
+      postal_code:postal||null,
+      type,
+      role:roleMap[type],
+      status:'pending'
+    });
+    if(profileErr)throw profileErr;
+    showPage('page-pending');
+  }catch(e){
+    alert('خطا در ثبت‌نام: '+e.message);
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='ارسال درخواست ثبت‌نام';}
+  }
 }
 
 async function doLogout(){
