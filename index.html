@@ -616,6 +616,7 @@ async function loadProducts() {
       const m = p.name.match(/^(.*?)\s*\(([^)]+)\)$/);
       return {
         id: p.id,
+        category_id: p.category_id,
         sku: m ? m[2] : '',
         name: m ? m[1].trim() : p.name,
         cat: cat.name || 'سایر',
