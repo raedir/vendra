@@ -588,6 +588,8 @@ async function loadProducts() {
       .eq('contact_type_id', '00000000-0000-0000-0000-000000000020');
     if (shopErr) throw shopErr;
 
+    console.log('repPrices:', repPrices, 'shopPrices:', shopPrices);
+
     const repPriceMap = {};
     repPrices.forEach(r => { repPriceMap[r.product_id] = r.price; });
     const shopPriceMap = {};
