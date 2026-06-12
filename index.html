@@ -590,14 +590,6 @@ async function loadProducts() {
 
     console.log('repPrices:', repPrices, 'shopPrices:', shopPrices);
 
-    const firstRepEntry = repPrices[0];
-    console.log('نمونه repPrices[0]:', firstRepEntry);
-
-    const repPriceMap = {};
-    repPrices.forEach(r => { repPriceMap[r.product_id] = r.price; });
-    const shopPriceMap = {};
-    shopPrices.forEach(r => { shopPriceMap[r.product_id] = r.price; });
-
     const catMap = {};
     dbCats.forEach(c => {
       const meta = CATEGORY_PRICES[c.id] || {};
@@ -613,6 +605,20 @@ async function loadProducts() {
       .order('created_at', {ascending:true});
     if (prodErr) throw prodErr;
 
+    const prodToCat = {};
+    prods.forEach(p => { prodToCat[p.id] = p.category_id; });
+
+    const repPriceMap = {};
+    repPrices.forEach(r => {
+      const catId = prodToCat[r.product_id];
+      if (catId) repPriceMap[catId] = r.price;
+    });
+    const shopPriceMap = {};
+    shopPrices.forEach(r => {
+      const catId = prodToCat[r.product_id];
+      if (catId) shopPriceMap[catId] = r.price;
+    });
+
     PRODUCTS = prods.map(p => {
       const cat = catMap[p.category_id] || {};
       const m = p.name.match(/^(.*?)\s*\(([^)]+)\)$/);
@@ -622,8 +628,8 @@ async function loadProducts() {
         name: m ? m[1].trim() : p.name,
         cat: cat.name || 'سایر',
         emoji: cat.emoji || '📦',
-        priceRep: repPriceMap[p.id] || 0,
-        priceShop: shopPriceMap[p.id] || 0,
+        priceRep: repPriceMap[p.category_id] || 0,
+        priceShop: shopPriceMap[p.category_id] || 0,
         minRep: 6,
         minShop: 6,
       };
