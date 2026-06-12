@@ -500,6 +500,10 @@ input:checked+.sw-slider:before{transform:translateX(-16px);background:var(--bla
           <div class="admin-card-title">✅ سفارش‌های تایید شده</div>
           <div id="approved-orders-admin"></div>
         </div>
+        <div class="admin-card" style="grid-column:1/-1">
+          <div class="admin-card-title">💰 ویرایش قیمت‌ها</div>
+          <div id="prices-admin"><p style="font-size:11px;color:var(--text3);padding:8px 0">در حال بارگذاری...</p></div>
+        </div>
         <div class="admin-card">
           <div class="admin-card-title">⚙️ تنظیمات فروش</div>
           <div class="setting-row"><span class="setting-label">حداقل خرید مغازه‌دار (تومان)</span><input class="setting-input" value="20,000,000"></div>
@@ -802,6 +806,7 @@ function showScreen(name){
   if(document.getElementById('top-bar-title'))document.getElementById('top-bar-title').textContent=titles[name]||'';
   if(window.innerWidth<768)closeSidebar();
   if(name==='orders'||name==='admin') renderOrders();
+  if(name==='admin') loadPrices();
   if(name==='admin') loadPendingUsers();
 }
 
@@ -1073,6 +1078,50 @@ async function approveOrder(id,num){
   if(error){alert('خطا: '+error.message);return;}
   await renderOrders();
   alert('سفارش '+num+' تایید شد.');
+}
+
+async function loadPrices(){
+  const el=document.getElementById('prices-admin');
+  if(!el)return;
+  const {data:cats}=await _supabase.from('categories').select('id,name').eq('tenant_id',TENANT_ID).order('name');
+  const {data:prices}=await _supabase.from('product_prices').select('id,product_id,contact_type_id,price');
+  if(!cats||!prices){el.innerHTML='<p style="font-size:11px;color:var(--danger)">خطا در بارگذاری</p>';return;}
+  const REP='00000000-0000-0000-0000-000000000010';
+  const SHOP='00000000-0000-0000-0000-000000000020';
+  el.innerHTML='<table style="width:100%"><thead><tr>'
+    +'<th style="text-align:right;font-size:10px;color:var(--text3);padding:8px;border-bottom:2px solid var(--gold-light)">دسته‌بندی</th>'
+    +'<th style="text-align:right;font-size:10px;color:var(--text3);padding:8px;border-bottom:2px solid var(--gold-light)">قیمت نماینده</th>'
+    +'<th style="text-align:right;font-size:10px;color:var(--text3);padding:8px;border-bottom:2px solid var(--gold-light)">قیمت فروشگاه</th>'
+    +'<th style="border-bottom:2px solid var(--gold-light)"></th>'
+    +'</tr></thead><tbody>'
+    +cats.map(c=>{
+      const rep=prices.find(p=>p.product_id===c.id&&p.contact_type_id===REP);
+      const shop=prices.find(p=>p.product_id===c.id&&p.contact_type_id===SHOP);
+      return '<tr>'
+        +'<td style="font-size:11px;padding:8px;border-bottom:1px solid var(--border)">'+c.name+'</td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--border)"><input class="setting-input" id="rep-'+c.id+'" value="'+(rep?rep.price:0)+'" style="width:120px"></td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--border)"><input class="setting-input" id="shop-'+c.id+'" value="'+(shop?shop.price:0)+'" style="width:120px"></td>'
+        +'<td style="padding:6px 8px;border-bottom:1px solid var(--border)"><button class="btn-approve" onclick="savePrice(\''+c.id+'\',\''+(rep?rep.id:'')+'\',\''+(shop?shop.id:'')+'\')">ذخیره</button></td>'
+        +'</tr>';
+    }).join('')
+    +'</tbody></table>';
+}
+
+async function savePrice(catId,repId,shopId){
+  const repVal=parseInt(document.getElementById('rep-'+catId).value.replace(/,/g,''))||0;
+  const shopVal=parseInt(document.getElementById('shop-'+catId).value.replace(/,/g,''))||0;
+  const REP='00000000-0000-0000-0000-000000000010';
+  const SHOP='00000000-0000-0000-0000-000000000020';
+  const updates=[];
+  if(repId) updates.push(_supabase.from('product_prices').update({price:repVal}).eq('id',repId));
+  else updates.push(_supabase.from('product_prices').insert({product_id:catId,contact_type_id:REP,price:repVal}));
+  if(shopId) updates.push(_supabase.from('product_prices').update({price:shopVal}).eq('id',shopId));
+  else updates.push(_supabase.from('product_prices').insert({product_id:catId,contact_type_id:SHOP,price:shopVal}));
+  const results=await Promise.all(updates);
+  const err=results.find(r=>r.error);
+  if(err){alert('خطا: '+err.error.message);return;}
+  alert('قیمت‌ها ذخیره شد.');
+  await loadData();
 }
 
 async function loadPendingUsers(){
