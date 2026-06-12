@@ -576,10 +576,27 @@ async function loadProducts() {
       .order('created_at', {ascending:true});
     if (catErr) throw catErr;
 
+    const {data:repPrices, error:repErr} = await _supabase
+      .from('product_prices')
+      .select('product_id,price')
+      .eq('contact_type_id', '00000000-0000-0000-0000-000000000010');
+    if (repErr) throw repErr;
+
+    const {data:shopPrices, error:shopErr} = await _supabase
+      .from('product_prices')
+      .select('product_id,price')
+      .eq('contact_type_id', '00000000-0000-0000-0000-000000000020');
+    if (shopErr) throw shopErr;
+
+    const repPriceMap = {};
+    repPrices.forEach(r => { repPriceMap[r.product_id] = r.price; });
+    const shopPriceMap = {};
+    shopPrices.forEach(r => { shopPriceMap[r.product_id] = r.price; });
+
     const catMap = {};
     dbCats.forEach(c => {
-      const p = CATEGORY_PRICES[c.id] || {};
-      catMap[c.id] = { name: c.name, emoji: p.emoji || '📦', agent: p.agent || 0, retail: p.retail || 0 };
+      const meta = CATEGORY_PRICES[c.id] || {};
+      catMap[c.id] = { name: c.name, emoji: meta.emoji || '📦' };
     });
 
     const {data:prods, error:prodErr} = await _supabase
@@ -600,8 +617,8 @@ async function loadProducts() {
         name: m ? m[1].trim() : p.name,
         cat: cat.name || 'سایر',
         emoji: cat.emoji || '📦',
-        priceRep: cat.agent || 0,
-        priceShop: cat.retail || 0,
+        priceRep: repPriceMap[p.id] || 0,
+        priceShop: shopPriceMap[p.id] || 0,
         minRep: 6,
         minShop: 6,
       };
