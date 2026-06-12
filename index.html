@@ -600,7 +600,7 @@ async function loadProducts() {
 
     const {data:prods, error:prodErr} = await _supabase
       .from('products')
-      .select('id,name,category_id')
+      .select('id,name,category_id,image_url')
       .eq('tenant_id', TENANT_ID)
       .eq('is_variant', true)
       .eq('active', true)
@@ -621,6 +621,7 @@ async function loadProducts() {
         name: m ? m[1].trim() : p.name,
         cat: cat.name || 'سایر',
         emoji: cat.emoji || '📦',
+        image_url: p.image_url || null,
         priceRep: repPriceMap[p.category_id] || 0,
         priceShop: shopPriceMap[p.category_id] || 0,
         minRep: 6,
@@ -823,7 +824,7 @@ function renderCatalog(){
     const min=isShop?p.minShop:p.minRep;
     const qty=cart[p.id]||0;
     return `<div class="product-card${qty>0?' selected':''}" id="pcard-${p.id}">
-      <div class="product-img">${p.emoji}<span class="sku-badge">${p.sku}</span></div>
+      <div class="product-img">${p.image_url?`<img src="${p.image_url}" style="width:100%;height:100%;object-fit:cover;border-radius:8px 8px 0 0;" onerror="this.parentElement.innerHTML='${p.emoji}<span class=\\'sku-badge\\'>${p.sku}</span>'">`:`${p.emoji}`}<span class="sku-badge">${p.sku}</span></div>
       <div class="product-info">
         <div class="product-name">${p.name}</div>
         <div class="product-prices">
