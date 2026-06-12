@@ -497,6 +497,10 @@ input:checked+.sw-slider:before{transform:translateX(-16px);background:var(--bla
           <div id="pending-orders-admin"></div>
         </div>
         <div class="admin-card">
+          <div class="admin-card-title">✅ سفارش‌های تایید شده</div>
+          <div id="approved-orders-admin"></div>
+        </div>
+        <div class="admin-card">
           <div class="admin-card-title">⚙️ تنظیمات فروش</div>
           <div class="setting-row"><span class="setting-label">حداقل خرید مغازه‌دار (تومان)</span><input class="setting-input" value="20,000,000"></div>
           <div class="setting-row"><span class="setting-label">حداقل هر SKU — مغازه‌دار</span><input class="setting-input" value="6"></div>
@@ -1048,6 +1052,18 @@ async function renderOrders(){
         <div><div style="font-size:11px;font-weight:600">${o.order_num}</div><div style="font-size:10px;color:var(--text3)">${fmt(o.total)} ت — ${o.pay_type==='cash'?'نقدی':(o.check_days||'')+' روزه'}</div></div>
         <div><button class="btn-reject">رد</button><button class="btn-approve" onclick="approveOrder('${o.id}','${o.order_num}')">تایید</button></div>
       </div>`).join(''):'<p style="font-size:11px;color:var(--text3);padding:12px 0">سفارشی در انتظار ندارید</p>';
+  }
+  const approvedList=document.getElementById('approved-orders-admin');
+  if(approvedList){
+    const approved=orders.filter(o=>o.status==='approved');
+    approvedList.innerHTML=approved.length?approved.map(o=>{
+      const d=new Date(o.created_at);
+      const date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+      return `<div class="user-row">
+        <div><div style="font-size:11px;font-weight:600">${o.order_num}</div><div style="font-size:10px;color:var(--text3)">${fmt(o.total)} ت — ${o.pay_type==='cash'?'نقدی':(o.check_days||'')+' روزه'} — ${date}</div></div>
+        <div><span class="badge badge-green" style="font-size:9px">تایید شده</span></div>
+      </div>`;
+    }).join(''):'<p style="font-size:11px;color:var(--text3);padding:12px 0">سفارش تایید شده‌ای ندارید</p>';
   }
 }
 
