@@ -1000,13 +1000,25 @@ async function confirmOrder(){
       status:'pending'
     }).select('id').single();
     if(oErr)throw oErr;
+    const contactTypeId=currentUser.type==='shop'
+      ?'00000000-0000-0000-0000-000000000020'
+      :'00000000-0000-0000-0000-000000000010';
+    const catIds=[...new Set(o.items.map(it=>it.category_id))];
+    const {data:freshPrices,error:pErr}=await _supabase
+      .from('product_prices')
+      .select('product_id,price')
+      .eq('contact_type_id',contactTypeId)
+      .in('product_id',catIds);
+    if(pErr)throw pErr;
+    const freshPriceMap={};
+    freshPrices.forEach(p=>{freshPriceMap[p.product_id]=p.price;});
     const itemRows=o.items.map(it=>({
       order_id:orderRow.id,
       product_id:it.id,
       product_name:it.name,
       qty:it.qty,
-      unit_price:currentUser.type==='shop'?it.priceShop:it.priceRep,
-      line_total:(currentUser.type==='shop'?it.priceShop:it.priceRep)*it.qty
+      unit_price:freshPriceMap[it.category_id]||0,
+      line_total:(freshPriceMap[it.category_id]||0)*it.qty
     }));
     const {error:iErr}=await _supabase.from('order_items').insert(itemRows);
     if(iErr)throw iErr;
