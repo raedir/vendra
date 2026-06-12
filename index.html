@@ -618,6 +618,7 @@ async function loadProducts() {
       const catId = prodToCat[r.product_id];
       if (catId) shopPriceMap[catId] = r.price;
     });
+    console.log('repPriceMap sample:', Object.entries(repPriceMap).slice(0,3));
 
     PRODUCTS = prods.map(p => {
       const cat = catMap[p.category_id] || {};
