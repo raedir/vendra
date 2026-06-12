@@ -590,6 +590,9 @@ async function loadProducts() {
 
     console.log('repPrices:', repPrices, 'shopPrices:', shopPrices);
 
+    const firstRepEntry = repPrices[0];
+    console.log('نمونه repPrices[0]:', firstRepEntry);
+
     const repPriceMap = {};
     repPrices.forEach(r => { repPriceMap[r.product_id] = r.price; });
     const shopPriceMap = {};
@@ -625,6 +628,9 @@ async function loadProducts() {
         minShop: 6,
       };
     });
+
+    const noPriceProd = PRODUCTS.find(p => p.priceRep === 0);
+    if (noPriceProd) console.log('اولین محصول بدون قیمت — id:', noPriceProd.id, '| category_id از prods:', prods.find(p => p.id === noPriceProd.id)?.category_id);
   } catch(e) {
     console.error('خطا در بارگذاری محصولات:', e);
     PRODUCTS = [];
