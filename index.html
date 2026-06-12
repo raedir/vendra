@@ -588,8 +588,6 @@ async function loadProducts() {
       .eq('contact_type_id', '00000000-0000-0000-0000-000000000020');
     if (shopErr) throw shopErr;
 
-    console.log('repPrices:', repPrices, 'shopPrices:', shopPrices);
-
     const catMap = {};
     dbCats.forEach(c => {
       const meta = CATEGORY_PRICES[c.id] || {};
@@ -609,8 +607,6 @@ async function loadProducts() {
     repPrices.forEach(r => { repPriceMap[r.product_id] = r.price; });
     const shopPriceMap = {};
     shopPrices.forEach(r => { shopPriceMap[r.product_id] = r.price; });
-    console.log('repPriceMap sample:', Object.entries(repPriceMap).slice(0,3));
-
     PRODUCTS = prods.map(p => {
       const cat = catMap[p.category_id] || {};
       const m = p.name.match(/^(.*?)\s*\(([^)]+)\)$/);
@@ -628,8 +624,6 @@ async function loadProducts() {
       };
     });
 
-    const noPriceProd = PRODUCTS.find(p => p.priceRep === 0);
-    if (noPriceProd) console.log('اولین محصول بدون قیمت — id:', noPriceProd.id, '| category_id از prods:', prods.find(p => p.id === noPriceProd.id)?.category_id);
   } catch(e) {
     console.error('خطا در بارگذاری محصولات:', e);
     PRODUCTS = [];
