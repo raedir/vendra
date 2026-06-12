@@ -605,19 +605,10 @@ async function loadProducts() {
       .order('created_at', {ascending:true});
     if (prodErr) throw prodErr;
 
-    const prodToCat = {};
-    prods.forEach(p => { prodToCat[p.id] = p.category_id; });
-
     const repPriceMap = {};
-    repPrices.forEach(r => {
-      const catId = prodToCat[r.product_id];
-      if (catId) repPriceMap[catId] = r.price;
-    });
+    repPrices.forEach(r => { repPriceMap[r.product_id] = r.price; });
     const shopPriceMap = {};
-    shopPrices.forEach(r => {
-      const catId = prodToCat[r.product_id];
-      if (catId) shopPriceMap[catId] = r.price;
-    });
+    shopPrices.forEach(r => { shopPriceMap[r.product_id] = r.price; });
     console.log('repPriceMap sample:', Object.entries(repPriceMap).slice(0,3));
 
     PRODUCTS = prods.map(p => {
