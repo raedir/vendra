@@ -129,6 +129,7 @@ table{width:100%;border-collapse:collapse;}
 th{font-size:10px;color:var(--text3);font-weight:700;padding:8px 12px;text-align:right;border-bottom:2px solid var(--gold-light);}
 td{font-size:12px;padding:10px 12px;border-bottom:1px solid var(--border);color:var(--text);}
 tr:last-child td{border-bottom:none;}
+tbody tr:hover td{background:rgba(201,168,76,0.07);}
 tr:hover td{background:var(--gold-light);}
 
 /* ===== CATALOG ===== */
@@ -462,9 +463,9 @@ input:checked+.sw-slider:before{transform:translateX(-16px);background:var(--bla
     <!-- فاکتور -->
     <div class="screen" id="screen-invoice">
       <div style="display:flex;gap:10px;margin-bottom:20px;align-items:center;">
-        <button class="btn-back" onclick="showScreen('catalog')">← بازگشت</button>
+        <button class="btn-back" id="invoice-back-btn" onclick="showScreen('catalog')">← بازگشت</button>
         <button class="btn-print" onclick="printInvoice()">چاپ / PDF</button>
-        <button class="btn-primary" style="width:auto;padding:10px 20px;" onclick="confirmOrder()">تایید نهایی سفارش</button>
+        <button class="btn-primary" id="invoice-confirm-btn" style="width:auto;padding:10px 20px;" onclick="confirmOrder()">تایید نهایی سفارش</button>
       </div>
       <div class="invoice-paper" id="invoice-paper"></div>
     </div>
@@ -954,6 +955,8 @@ function showInvoiceScreen(){
     return `<tr><td>${p.name}</td><td>${p.sku}</td><td>${fmt(price)}</td><td>${qty}</td><td>${fmt(price*qty)}</td></tr>`;
   }).join('');
   const payLabel=payType==='cash'?'نقدی':`چکی ${checkDays} روزه`;
+  document.getElementById('invoice-back-btn').onclick=()=>showScreen('catalog');
+  document.getElementById('invoice-confirm-btn').style.display='';
   document.getElementById('invoice-paper').innerHTML=`
     <div class="inv-header">
       <div><div class="inv-brand">Vendra</div><div style="font-size:10px;color:#666;margin-top:4px">پیش‌فاکتور ${invType==='formal'?'رسمی':'غیررسمی'}</div></div>
@@ -1053,7 +1056,7 @@ async function renderOrders(){
     const payBadge=o.pay_type==='cash'?'badge-blue':'badge-orange';
     const statusLabel=o.status==='pending'?'در انتظار':o.status==='approved'?'تایید شده':'رد شده';
     const statusBadge=o.status==='pending'?'badge-gray':o.status==='approved'?'badge-green':'badge-red';
-    return `<tr>
+    return `<tr style="cursor:pointer" onclick="showOrderDetail('${o.id}')" title="مشاهده جزئیات">
       <td>${o.order_num}</td>
       <td>${date}</td>
       <td>${itemCount}</td>
@@ -1083,6 +1086,44 @@ async function renderOrders(){
       </div>`;
     }).join(''):'<p style="font-size:11px;color:var(--text3);padding:12px 0">سفارش تایید شده‌ای ندارید</p>';
   }
+}
+
+async function showOrderDetail(orderId){
+  const o=orders.find(x=>x.id===orderId);
+  if(!o)return;
+  const {data:items,error}=await _supabase.from('order_items').select('product_name,qty,unit_price,line_total').eq('order_id',orderId);
+  if(error){alert('خطا در بارگذاری جزئیات');return;}
+  const d=new Date(o.created_at);
+  const date=`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+  const payLabel=o.pay_type==='cash'?'نقدی':`چکی ${o.check_days} روزه`;
+  const statusLabel=o.status==='pending'?'در انتظار تایید':o.status==='approved'?'تایید شده':'رد شده';
+  const statusColor=o.status==='pending'?'#888':o.status==='approved'?'#4caf50':'#f44336';
+  const rows=items.map(it=>`<tr><td>${it.product_name}</td><td>${fmt(it.unit_price)}</td><td>${it.qty}</td><td>${fmt(it.line_total)}</td></tr>`).join('');
+  document.getElementById('invoice-paper').innerHTML=`
+    <div class="inv-header">
+      <div><div class="inv-brand">Vendra</div><div style="font-size:10px;color:#666;margin-top:4px">پیش‌فاکتور</div></div>
+      <div class="inv-meta"><strong>${o.order_num}</strong>تاریخ: ${date}<br>نوع: ${payLabel}</div>
+    </div>
+    <div class="inv-parties">
+      <div class="inv-party"><div class="inv-party-title">فروشنده</div><div class="inv-party-name">شرکت سوشیا</div><div class="inv-party-detail">کدفروشگاه: SOSHIA-001</div></div>
+      <div class="inv-party"><div class="inv-party-title">خریدار</div><div class="inv-party-name">${currentUser.name}</div><div class="inv-party-detail">${currentUser.role}</div></div>
+    </div>
+    <table class="inv-table"><thead><tr><th>نام کالا</th><th>قیمت واحد</th><th>تعداد</th><th>جمع</th></tr></thead><tbody>${rows}</tbody></table>
+    <div style="display:flex;justify-content:flex-end">
+      <div class="inv-totals">
+        <div class="inv-total-row"><span>جمع کالا</span><span>${fmt(o.subtotal)} ت</span></div>
+        ${o.pay_type==='check'&&o.fee?`<div class="inv-total-row"><span>هزینه چک (${o.check_days} روز)</span><span>${fmt(o.fee)} ت</span></div>`:''}
+        ${o.vat?`<div class="inv-total-row"><span>ارزش افزوده ۱۰٪</span><span>${fmt(o.vat)} ت</span></div>`:''}
+        <div class="inv-total-row final"><span>جمع کل</span><span>${fmt(o.total)} ت</span></div>
+      </div>
+    </div>
+    <div class="inv-footer">
+      <div>این پیش‌فاکتور توسط سیستم Vendra صادر شده است</div>
+      <div class="inv-stamp" style="color:${statusColor};border-color:${statusColor}">${statusLabel}</div>
+    </div>`;
+  document.getElementById('invoice-back-btn').onclick=()=>showScreen('orders');
+  document.getElementById('invoice-confirm-btn').style.display='none';
+  showScreen('invoice');
 }
 
 async function approveOrder(id,num){
