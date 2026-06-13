@@ -1025,6 +1025,15 @@ async function confirmOrder(){
     }));
     const {error:iErr}=await _supabase.from('order_items').insert(itemRows);
     if(iErr)throw iErr;
+    // اعلان تلگرام
+    try{
+      const tMsg=`🛍️ سفارش جدید Vendra\n\n👤 ${currentUser.name}\n📋 ${o.orderNum}\n💰 ${fmt(o.total)} تومان\n📦 ${o.items.length} قلم کالا\n💳 ${o.payType==='cash'?'نقدی':`چکی ${o.checkDays} روزه`}`;
+      await fetch(`https://api.telegram.org/bot8369008543:AAHCbX75lwO7nYApRRYRLnoz2-HT6cbkrKQ/sendMessage`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({chat_id:58187605,text:tMsg})
+      });
+    }catch(tErr){console.warn('Telegram notify failed:',tErr);}
     cart={};
     window._pendingOrder=null;
     await renderOrders();
